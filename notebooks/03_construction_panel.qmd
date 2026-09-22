@@ -1,0 +1,144 @@
+---
+title: "Construction du panel longitudinal"
+subtitle: "Faisabilité du panel personnel × année et stratégie alternative"
+author: "Projet DEPP A5 Mobilité des personnels"
+date: last-modified
+lang: fr
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: chargement
+panel_result <- targets::tar_read(panel_data, store = here::here("_targets"))
+panel <- readRDS(panel_result$panel_file)
+```
+
+::: {.callout-important}
+## Conclusion de faisabilité
+
+L'unité cible `personnel × année` **n'est pas constructible** avec les données
+ouvertes acquises. Aucun identifiant individuel stable, aucune fonction
+individuelle et aucune position annuelle personnelle ne sont publiés. Les lignes
+disponibles décrivent des agrégats `établissement × année`.
+
+En conséquence, ce notebook ne calcule aucune mobilité individuelle. Il met en
+œuvre une stratégie alternative limitée et explicitement nommée : un panel
+d'établissements du premier degré pour 2024–2025.
+:::
+
+# Audit de l'unité cible
+
+```{r}
+#| label: faisabilite
+knitr::kable(panel_result$feasibility, align = "l")
+```
+
+L'identifiant `uai` identifie un établissement, pas un agent. Il ne permet donc
+pas de savoir si une personne est restée, a changé d'établissement, de
+département, d'académie ou de fonction.
+
+# Stratégie alternative
+
+Le panel alternatif contient `94 584` observations, `47 591` UAI et deux années,
+2024 et 2025. La clé est `uai × annee`.
+
+La préparation applique explicitement :
+
+```r
+data |>
+  dplyr::arrange(uai, annee) |>
+  dplyr::group_by(uai) |>
+  dplyr::mutate(
+    annee_precedente = dplyr::lag(annee),
+    annee_suivante = dplyr::lead(annee),
+    etp_enseignants_precedent = dplyr::lag(etp_enseignants)
+  ) |>
+  dplyr::ungroup()
+```
+
+`lag()` et `lead()` sont ainsi calculés exclusivement à l'intérieur d'une même
+UAI après tri temporel. Une variation n'est calculée que si les années sont
+consécutives ; aucun saut temporel n'est traité comme une transition.
+
+# Transitions demandées et observabilité
+
+```{r}
+#| label: transitions
+knitr::kable(panel_result$transitions, align = "l")
+```
+
+Les concepts `stable`, `mobilité établissement`, `mobilité département`,
+`mobilité académie`, `changement fonction`, `entrée` et `sortie` restent donc
+non constructibles au niveau personnel. Ils nécessitent le panel individuel BSA
+accessible dans un environnement sécurisé, et non dans l'open data.
+
+# Variables du panel alternatif
+
+| Variable | Définition autorisée | Interprétation interdite |
+|---|---|---|
+| `sequence_consecutive` | même UAI observée l'année précédente | même personnel resté en poste |
+| `apparition_dans_fichier` | UAI absente avant sa première observation dans la fenêtre | entrée de personnels |
+| `disparition_apres_observation` | UAI absente après sa dernière observation dans la fenêtre | sortie, retraite ou mobilité |
+| `variation_etp_enseignants` | différence d'ETP agrégés entre années consécutives | nombre d'entrées moins sorties individuelles |
+| `changement_code_departement_etablissement` | changement du code rattaché à l'UAI | mobilité départementale d'enseignants |
+| `changement_code_academie_etablissement` | changement du code rattaché à l'UAI | mobilité académique d'enseignants |
+| `censure_gauche` | historique antérieur à 2024 inconnu | établissement nécessairement créé en 2024 |
+| `censure_droite` | devenir après 2025 inconnu | établissement nécessairement stable après 2025 |
+
+# Contrôles du panel
+
+```{r}
+#| label: validation
+knitr::kable(panel_result$validation, align = "l")
+```
+
+Les 598 UAI observées une seule fois se décomposent en 84 apparitions en 2025 et
+514 disparitions apparentes après 2024. Ces nombres décrivent la présence dans
+le fichier, sans qualifier le mécanisme sous-jacent.
+
+Parmi les UAI suivies, trois changements de code départemental et aucun changement
+de code académique sont observés. Ils sont conservés comme changements de
+métadonnée d'établissement et ne sont pas interprétés comme des mobilités.
+
+```{r}
+#| label: statut-observation
+statuts <- as.data.frame(table(panel$statut_observation), stringsAsFactors = FALSE)
+names(statuts) <- c("STATUT_OBSERVATION", "NOMBRE")
+knitr::kable(statuts, align = c("l", "r"))
+```
+
+# Censure et sorties apparentes
+
+La première observation d'une UAI en 2024 est censurée à gauche : son histoire
+avant la fenêtre est inconnue. La dernière observation en 2025 est censurée à
+droite : son devenir ultérieur est inconnu. Une disparition en 2024 peut provenir
+d'une fermeture, d'un changement de champ, d'une modification d'identifiant ou
+d'un défaut de couverture. Elle ne constitue jamais, à elle seule, une véritable
+sortie de personnel.
+
+# Livrables
+
+- `R/panel.R` : diagnostic, construction alternative et validations ;
+- `data/processed/panel/etablissement_annee_panel.rds` : panel alternatif local ;
+- `faisabilite_panel_personnel.csv` : preuve de non-faisabilité individuelle ;
+- `dictionnaire_transitions.csv` : statut des transitions demandées ;
+- `validation_panel.csv` : contrôles d'identifiants, ordre, trous, censure et sorties apparentes ;
+- `tests/testthat/test-panel.R` : tests automatisés.
+
+::: {.callout-warning}
+## Condition préalable à un véritable panel personnel
+
+Il faudrait disposer d'un identifiant agent pseudonymisé stable, des positions
+annuelles, des établissements, territoires, fonctions et motifs d'entrée/sortie,
+avec leurs dates et règles de censure. Sans ces informations, toute transition
+individuelle serait inventée.
+:::

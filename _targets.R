@@ -1,7 +1,7 @@
 library(targets)
 
 tar_option_set(
-  packages = c("data.table", "digest", "fs", "yaml"),
+  packages = c("data.table", "digest", "dplyr", "fs", "yaml"),
   format = "rds",
   error = "stop"
 )
@@ -29,5 +29,9 @@ list(
   tar_target(
     feature_data,
     run_feature_engineering(cleaned_data)
+  ),
+  tar_target(
+    panel_data,
+    run_panel_strategy(feature_data)
   )
 )

@@ -10,6 +10,7 @@ Imports:
     cli,
     data.table,
     digest,
+    dplyr,
     fs,
     here,
     rmarkdown,
