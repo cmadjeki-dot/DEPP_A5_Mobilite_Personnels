@@ -65,5 +65,10 @@ list(
   tar_target(
     explainability_results,
     run_explainability_analysis(modeling_results, econometric_results)
+  ),
+  tar_target(
+    dashboard_validation,
+    run_dashboard_validation(descriptive_results, trajectory_results, territorial_results,
+      econometric_results, survival_results, modeling_results, evaluation_results, explainability_results)
   )
 )

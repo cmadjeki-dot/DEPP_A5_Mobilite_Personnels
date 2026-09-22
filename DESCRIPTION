@@ -23,6 +23,8 @@ Imports:
     scales,
     sessioninfo,
     sf,
+    shiny,
+    bslib,
     survival,
     targets,
     tarchetypes,
