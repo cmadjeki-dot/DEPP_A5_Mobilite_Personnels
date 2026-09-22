@@ -1,0 +1,108 @@
+---
+title: "Importation reproductible des données"
+subtitle: "DEPP A5 — Mobilité des personnels enseignants"
+author: "Projet DEPP A5 Mobilité des personnels"
+date: last-modified
+lang: fr
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    embed-resources: true
+execute:
+  enabled: false
+---
+
+::: {.callout-important}
+## Périmètre
+
+Ce document décrit uniquement l'acquisition et l'importation des sources
+publiques validées à l'étape 2. Il ne nettoie, ne rapproche et n'analyse aucune
+donnée. Le test d'importation a été exécuté le **22 septembre 2026**.
+:::
+
+# Principe de reproductibilité
+
+Le manifeste versionné `config/data_sources.yml` constitue la source de vérité :
+organisme producteur, intitulé, page officielle, URL d'export, licence,
+millésime, format, encodage, séparateur, seuil minimal de lignes et variables
+requises. `R/import.R` lit ce manifeste et applique la même chaîne de contrôles à
+chaque source.
+
+1. téléchargement binaire dans un fichier temporaire ;
+2. déplacement atomique vers `data/raw/<source>/<millésime>/` ;
+3. refus de tout écrasement automatique d'un fichier brut existant ;
+4. contrôle de présence, taille, extension, octets NUL, UTF-8 et séparateur ;
+5. calcul de l'empreinte SHA-256 ;
+6. import de toutes les colonnes en caractères afin de préserver les identifiants ;
+7. contrôle du schéma et du nombre minimal de lignes ;
+8. création d'un dictionnaire initial, d'une provenance YAML et d'un journal.
+
+Les fichiers `raw`, intermédiaires et journaux sont volontairement exclus de Git.
+Le manifeste, le code et les tests sont versionnés ; une nouvelle machine peut
+donc refaire l'acquisition depuis les URL officielles.
+
+# Origine précise des sources actives
+
+| ID | Organisme et jeu officiel | Millésime effectivement observé | URL officielle |
+|---|---|---:|---|
+| `personnels_1d` | DEPP, *Indicateurs de personnels des établissements du premier degré* | 2024-2025 | [Catalogue](https://data.education.gouv.fr/explore/dataset/fr-en-indicateurs_personnels_etablissements1d/) |
+| `personnels_2d` | DEPP, *Indicateurs de personnels des établissements du second degré* | 2024 | [Catalogue](https://data.education.gouv.fr/explore/dataset/fr-en-indicateurs_personnels_etablissements2d/) |
+| `mouvement_1d` | DGRH-DEPP, *Mouvement interdépartemental des enseignants du premier degré public* | 2019 | [Catalogue](https://data.education.gouv.fr/explore/dataset/fr-en-donnees-cartes-mouvement-interdepartemental-premier-degre-public/) |
+| `annuaire_education` | Ministère de l'Éducation nationale, *Annuaire de l'éducation* | photographie acquise le 22-09-2026 | [Catalogue](https://data.education.gouv.fr/explore/dataset/fr-en-annuaire-education/) |
+| `ips_ecoles` | DEPP, *Indices de position sociale dans les écoles* | 2022-2023 à 2024-2025 | [Catalogue](https://data.education.gouv.fr/explore/dataset/fr-en-ips-ecoles-ap2022/) |
+| `ips_colleges` | DEPP, *Indices de position sociale dans les collèges* | 2022-2023 | [Catalogue](https://data.education.gouv.fr/explore/dataset/fr-en-ips-colleges-ap2022/) |
+| `ips_lycees` | DEPP, *Indices de position sociale dans les lycées* | 2022-2023 | [Catalogue](https://data.education.gouv.fr/explore/dataset/fr-en-ips-lycees-ap2022/) |
+
+Toutes les acquisitions utilisent l'export CSV de l'API Explore v2.1 du portail
+`data.education.gouv.fr`, avec les noms techniques, le séparateur point-virgule
+et l'encodage UTF-8. Les URL d'export intégrales sont conservées dans le
+manifeste et dans chaque fiche de provenance.
+
+# Sources non importées
+
+Les bilans sociaux académiques, les classeurs du Panorama statistique et les
+données contextuelles Insee restent référencés mais inactifs tant que leur table,
+leur périmètre et leur millésime ne sont pas arrêtés. Le panel individuel BSA
+n'est pas importable : il relève d'un accès sécurisé au CASD et non de l'open
+data. Cette exclusion empêche de simuler une disponibilité inexistante.
+
+# Artefacts produits
+
+| Artefact local | Rôle | Versionné ? |
+|---|---|---:|
+| `data/raw/<source>/<millésime>/*.csv` | octets officiels non modifiés | non |
+| `data/raw/<source>/<millésime>/*_provenance.yml` | origine, date UTC, licence, taille, SHA-256, dimensions | non |
+| `data/interim/dictionaries/*_dictionary.csv` | nom, classe importée, manquants, cardinalité, exemple | non |
+| `data/interim/import_summary.csv` | synthèse du dernier test | non |
+| `outputs/logs/import_<source>.log` | événements horodatés et erreurs | non |
+
+# Résultat du test d'importation
+
+| Source | Lignes | Colonnes | Contrôles |
+|---|---:|---:|---|
+| personnels 1D | 94 584 | 21 | OK |
+| personnels 2D | 10 697 | 40 | OK |
+| mouvement 1D | 101 | 8 | OK |
+| annuaire de l'éducation | 68 584 | 71 | OK |
+| IPS écoles | 97 080 | 23 | OK |
+| IPS collèges | 6 973 | 12 | OK |
+| IPS lycées | 3 598 | 18 | OK |
+
+Les sept fichiers passent les contrôles de format, encodage, schéma, volume et
+empreinte. Les identifiants sont importés comme chaînes de caractères : leurs
+zéros initiaux ne sont donc pas perdus.
+
+# Exécution
+
+Depuis la racine du projet :
+
+```r
+renv::restore()
+targets::tar_make()
+```
+
+Une relance réutilise un fichier brut déjà présent puis le revalide. Une mise à
+jour officielle doit être enregistrée sous un nouveau millésime dans le
+manifeste ; le pipeline n'écrase jamais silencieusement le brut antérieur.

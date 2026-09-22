@@ -1,2 +1,3 @@
 project_root <- rprojroot::find_root(rprojroot::has_file(".here"))
-source(file.path(project_root, "R", "project.R"))
+r_files <- list.files(file.path(project_root, "R"), pattern = "[.]R$", full.names = TRUE)
+invisible(lapply(r_files, source))

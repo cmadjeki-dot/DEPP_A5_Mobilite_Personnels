@@ -1,0 +1,99 @@
+schema_version: 1
+acquisition_policy: "Raw immuable, horodate, empreinte SHA-256 et provenance YAML."
+sources:
+  - id: personnels_1d
+    producer: "DEPP - Ministere de l'Education nationale"
+    dataset: "Indicateurs de personnels des etablissements du premier degre"
+    landing_url: "https://data.education.gouv.fr/explore/dataset/fr-en-indicateurs_personnels_etablissements1d/"
+    download_url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-indicateurs_personnels_etablissements1d/exports/csv?lang=fr&timezone=Europe%2FParis&use_labels=false&delimiter=%3B"
+    license: "Licence Ouverte / Open Licence version 2.0"
+    vintage: "2024-2025"
+    filename: "personnels_1d_2024-2025.csv"
+    format: csv
+    encoding: UTF-8
+    delimiter: ";"
+    minimum_rows: 90000
+    required_columns: [annee_de_la_rentree_scolaire, identifiant_de_l_etablissement, etp_d_enseignants_hommes_et_femmes]
+  - id: personnels_2d
+    producer: "DEPP - Ministere de l'Education nationale"
+    dataset: "Indicateurs de personnels des etablissements du second degre"
+    landing_url: "https://data.education.gouv.fr/explore/dataset/fr-en-indicateurs_personnels_etablissements2d/"
+    download_url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-indicateurs_personnels_etablissements2d/exports/csv?lang=fr&timezone=Europe%2FParis&use_labels=false&delimiter=%3B"
+    license: "Licence Ouverte / Open Licence version 2.0"
+    vintage: "2024"
+    filename: "personnels_2d_2024.csv"
+    format: csv
+    encoding: UTF-8
+    delimiter: ";"
+    minimum_rows: 10000
+    required_columns: [annee_de_la_rentree_scolaire, identifiant_de_l_etablissement, etp_total]
+  - id: mouvement_1d
+    producer: "DGRH et DEPP - Ministere de l'Education nationale"
+    dataset: "Mouvement interdepartemental des enseignants du premier degre public"
+    landing_url: "https://data.education.gouv.fr/explore/dataset/fr-en-donnees-cartes-mouvement-interdepartemental-premier-degre-public/"
+    download_url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-donnees-cartes-mouvement-interdepartemental-premier-degre-public/exports/csv?lang=fr&timezone=Europe%2FParis&use_labels=false&delimiter=%3B"
+    license: "Licence Ouverte / Open Licence version 2.0"
+    vintage: "2019"
+    filename: "mouvement_1d_2019.csv"
+    format: csv
+    encoding: UTF-8
+    delimiter: ";"
+    minimum_rows: 100
+    required_columns: [annee, code_departement, departement, ratio_entrees_sorties_ens_tit_1d_public]
+  - id: annuaire_education
+    producer: "Ministere de l'Education nationale"
+    dataset: "Annuaire de l'education"
+    landing_url: "https://data.education.gouv.fr/explore/dataset/fr-en-annuaire-education/"
+    download_url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-annuaire-education/exports/csv?lang=fr&timezone=Europe%2FParis&use_labels=false&delimiter=%3B"
+    license: "Licence Ouverte / Open Licence version 2.0"
+    vintage: "snapshot-2026-09-22"
+    filename: "annuaire_education_2026-09-22.csv"
+    format: csv
+    encoding: UTF-8
+    delimiter: ";"
+    minimum_rows: 65000
+    required_columns: [identifiant_de_l_etablissement, nom_etablissement, type_etablissement, code_commune]
+  - id: ips_ecoles
+    producer: "DEPP - Ministere de l'Education nationale"
+    dataset: "Indices de position sociale dans les ecoles"
+    landing_url: "https://data.education.gouv.fr/explore/dataset/fr-en-ips-ecoles-ap2022/"
+    download_url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ips-ecoles-ap2022/exports/csv?lang=fr&timezone=Europe%2FParis&use_labels=false&delimiter=%3B"
+    license: "Licence Ouverte / Open Licence version 2.0"
+    vintage: "2022-2025"
+    filename: "ips_ecoles_2022-2025.csv"
+    format: csv
+    encoding: UTF-8
+    delimiter: ";"
+    minimum_rows: 90000
+    required_columns: [rentree_scolaire, uai, secteur, ips]
+  - id: ips_colleges
+    producer: "DEPP - Ministere de l'Education nationale"
+    dataset: "Indices de position sociale dans les colleges"
+    landing_url: "https://data.education.gouv.fr/explore/dataset/fr-en-ips-colleges-ap2022/"
+    download_url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ips-colleges-ap2022/exports/csv?lang=fr&timezone=Europe%2FParis&use_labels=false&delimiter=%3B"
+    license: "Licence Ouverte / Open Licence version 2.0"
+    vintage: "2022-2023"
+    filename: "ips_colleges_2022-2023.csv"
+    format: csv
+    encoding: UTF-8
+    delimiter: ";"
+    minimum_rows: 6500
+    required_columns: [rentree_scolaire, uai, secteur, ips]
+  - id: ips_lycees
+    producer: "DEPP - Ministere de l'Education nationale"
+    dataset: "Indices de position sociale dans les lycees"
+    landing_url: "https://data.education.gouv.fr/explore/dataset/fr-en-ips-lycees-ap2022/"
+    download_url: "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-ips-lycees-ap2022/exports/csv?lang=fr&timezone=Europe%2FParis&use_labels=false&delimiter=%3B"
+    license: "Licence Ouverte / Open Licence version 2.0"
+    vintage: "2022-2023"
+    filename: "ips_lycees_2022-2023.csv"
+    format: csv
+    encoding: UTF-8
+    delimiter: ";"
+    minimum_rows: 3500
+    required_columns: [rentree_scolaire, uai, secteur, ips_ensemble_gt_pro]
+reference_only:
+  - {id: bilan_social_academique, reason: "Classeur agrege; selection de tables non arretee a l'etape 2."}
+  - {id: panorama_statistique, reason: "Treize classeurs; perimetre et millesime a fixer avant acquisition."}
+  - {id: insee_contexte, reason: "Sous-ensemble geographique et millesime non fixes."}
+  - {id: bsa_panel_individuel, reason: "Donnees individuelles securisees au CASD, non disponibles en open data."}
