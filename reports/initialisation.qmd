@@ -1,0 +1,24 @@
+---
+title: "Initialisation de l'environnement"
+subtitle: "DEPP A5 — Mobilite des personnels enseignants"
+date: last-modified
+---
+
+## Objet
+
+Ce document controle le fonctionnement conjoint de R, `renv` et Quarto.
+
+```{r}
+#| label: controle-environnement
+
+list(
+  version_r = R.version.string,
+  projet = basename(here::here()),
+  renv_actif = nzchar(Sys.getenv("RENV_PROJECT"))
+)
+```
+
+## Reproductibilite
+
+Les dependances R sont gerees par `renv` et les chemins sont relatifs a la
+racine du projet.

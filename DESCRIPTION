@@ -1,0 +1,19 @@
+Package: DEPPA5MobilitePersonnels
+Title: Analyse des parcours et mobilites des personnels enseignants
+Version: 0.0.0.9000
+Authors@R: person("Projet", "DEPP A5", role = c("aut", "cre"), email = "noreply@example.org")
+Description: Demonstrateur reproductible de statistique publique sur les
+    parcours et les mobilites des personnels enseignants.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports:
+    cli,
+    fs,
+    here,
+    rmarkdown,
+    sessioninfo,
+    targets,
+    tarchetypes,
+    testthat,
+    yaml
+Config/testthat/edition: 3

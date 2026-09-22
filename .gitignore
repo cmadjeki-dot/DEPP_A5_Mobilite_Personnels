@@ -1,0 +1,64 @@
+# R et RStudio
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Variables d'environnement et secrets
+.Renviron
+.env
+.env.*
+!.env.example
+
+# renv : conserver renv.lock, activate.R et settings.json
+renv/library/
+renv/local/
+renv/staging/
+renv/python/
+renv/sandbox/
+
+# targets
+_targets/
+_targets.RData
+
+# Quarto
+/.quarto/
+/_site/
+/.cache/
+**/*_files/
+**/*_cache/
+
+# Donnees : ne versionner que les fichiers d'ancrage
+data/raw/*
+!data/raw/.gitkeep
+data/external/*
+!data/external/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Sorties generees
+outputs/figures/*
+!outputs/figures/.gitkeep
+outputs/tables/*
+!outputs/tables/.gitkeep
+outputs/models/*
+!outputs/models/.gitkeep
+outputs/logs/*
+!outputs/logs/.gitkeep
+
+# Fichiers temporaires et journaux locaux
+*.log
+*.tmp
+*.temp
+~$*
+.DS_Store
+Thumbs.db
+
+# IDE locaux
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+**/*.quarto_ipynb

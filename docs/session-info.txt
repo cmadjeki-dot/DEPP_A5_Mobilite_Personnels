@@ -1,0 +1,26 @@
+─ Session info ───────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.6.1 (2026-06-24 ucrt)
+ os       Windows 10 x64 (build 19045)
+ system   x86_64, mingw32
+ ui       RTerm
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       Europe/Paris
+ date     2026-09-22
+ pandoc   NA
+ quarto   1.10.18 @ C:\\PROGRA~1\\Quarto\\bin\\quarto.exe
+
+─ Packages ───────────────────────────────────────────────────────────────────
+ ! package     * version date (UTC) lib source
+ P cli           3.6.6   2026-04-09 [?] CRAN (R 4.6.0)
+   renv          1.2.4   2026-08-03 [1] CRAN (R 4.6.1)
+ P sessioninfo   1.2.4   2026-06-04 [?] CRAN (R 4.6.1)
+
+ [1] ~/AppData/Local/R/cache/R/renv/library/DEPP_A5_Mobilite_Personnels-103fdfbd/windows/R-4.6/x86_64-w64-mingw32
+ [2] C:/Program Files/R/R-4.6.1/library
+
+ P ── Loaded and on-disk path mismatch.
+
+──────────────────────────────────────────────────────────────────────────────

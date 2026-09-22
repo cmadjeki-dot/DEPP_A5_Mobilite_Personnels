@@ -1,0 +1,14 @@
+data:
+  raw: data/raw
+  external: data/external
+  interim: data/interim
+  processed: data/processed
+
+outputs:
+  figures: outputs/figures
+  tables: outputs/tables
+  models: outputs/models
+  logs: outputs/logs
+
+reports: reports
+dashboard: dashboard
