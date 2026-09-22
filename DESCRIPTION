@@ -21,6 +21,7 @@ Imports:
     scales,
     sessioninfo,
     sf,
+    survival,
     targets,
     tarchetypes,
     testthat,

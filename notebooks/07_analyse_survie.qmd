@@ -1,0 +1,94 @@
+---
+title: "Analyse de survie — temps avant une mobilité"
+subtitle: "Étape 12 — audit d'identifiabilité et protocole exécutable"
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: initialisation
+library(gt)
+library(targets)
+
+results <- tar_read(survival_results, store = here::here("_targets"))
+```
+
+::: {.callout-important}
+## Conclusion
+
+**L'analyse du temps avant une mobilité n'est pas identifiable avec les données ouvertes acquises.** Elles ne contiennent ni identifiant personnel stable, ni date individuelle de mobilité, ni suivi d'un état professionnel. Les deux millésimes 2024–2025 décrivent des établissements, pas des trajectoires de personnes.
+
+Aucune courbe de Kaplan–Meier, comparaison log-rank, estimation de Cox ou hazard ratio n'est donc publiée comme résultat empirique. Une telle production transformerait une absence d'UAI dans un fichier en mobilité individuelle, ce qui serait faux.
+:::
+
+## Définition scientifique requise
+
+```{r}
+#| label: definition
+results$definition |>
+  gt() |>
+  tab_header(title = "Question, origine, durée, événement et censure")
+```
+
+L'origine doit précéder l'événement et être définie de manière comparable pour tous les personnels. La durée d'une personne censurée s'arrête à sa dernière date de suivi fiable. Une retraite, un décès, une sortie du champ ou une disparition technique ne doit jamais être recodé silencieusement comme mobilité.
+
+## Audit des données ouvertes
+
+```{r}
+#| label: audit
+results$feasibility |>
+  gt() |>
+  tab_header(title = "Audit de faisabilité")
+```
+
+Deux observations d'un établissement permettent seulement d'étudier sa présence dans deux fichiers. Elles ne fournissent ni la durée d'un personnel dans un poste, ni la date d'une mobilité, ni un mécanisme de censure individuel.
+
+## Données internes nécessaires
+
+```{r}
+#| label: contrat
+results$contract |>
+  gt() |>
+  tab_header(title = "Contrat minimal pour une table analytique de survie")
+```
+
+Le fichier interne devra comporter une ligne analytique par personnel pour l'analyse de la première mobilité, ou un format début–fin adapté aux événements répétés. Les covariables doivent être mesurées à l'origine ou traitées explicitement comme dépendantes du temps.
+
+## Méthodes prévues
+
+Le module [R/survival.R](../R/survival.R) contient une chaîne conditionnelle complète :
+
+1. `Surv(duree_annees, evenement_mobilite)` encode la durée et la censure ;
+2. `survfit()` estime les courbes de Kaplan–Meier par groupe ;
+3. `survdiff()` réalise la comparaison log-rank ;
+4. `coxph()` estime le modèle de Cox ;
+5. `broom::tidy(..., exponentiate = TRUE, conf.int = TRUE)` produit les hazard ratios et IC95 % ;
+6. `cox.zph()` teste l'hypothèse des risques proportionnels.
+
+```{r}
+#| label: registre
+results$outputs |>
+  gt() |>
+  tab_header(title = "Sorties demandées et décision de production")
+```
+
+Ces fonctions sont testées automatiquement sur une petite fixture technique conforme. Cette fixture vérifie le code; elle ne constitue pas une simulation scientifique et aucun de ses résultats n'est interprété ni diffusé.
+
+## Lecture accessible des résultats futurs
+
+```{r}
+#| label: interpretation
+results$interpretation |>
+  gt() |>
+  tab_header(title = "Règles d'interprétation")
+```
+
+Si les données internes deviennent disponibles, une courbe Kaplan–Meier indiquera la proportion estimée de personnels n'ayant pas encore connu la mobilité définie. Un hazard ratio comparera des rythmes instantanés de mobilité, et non des durées moyennes ni des probabilités cumulées. L'hypothèse des risques proportionnels devra être examinée globalement et covariable par covariable; en cas de rejet, une interaction avec le temps, une stratification ou un autre modèle devra être envisagé.
+
+Même avec ces données, « toutes choses égales par ailleurs » signifiera seulement « à valeurs identiques des variables observées incluses dans le modèle ». Cela ne suffira pas à établir une causalité.
