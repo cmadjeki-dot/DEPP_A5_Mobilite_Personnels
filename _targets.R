@@ -1,7 +1,7 @@
 library(targets)
 
 tar_option_set(
-  packages = c("data.table", "digest", "dplyr", "fs", "ggplot2", "gt", "yaml"),
+  packages = c("data.table", "digest", "dplyr", "fs", "ggplot2", "gt", "sf", "yaml"),
   format = "rds",
   error = "stop"
 )
@@ -41,5 +41,9 @@ list(
   tar_target(
     trajectory_results,
     run_trajectory_analysis(panel_data)
+  ),
+  tar_target(
+    territorial_results,
+    run_territorial_analysis(descriptive_results)
   )
 )
