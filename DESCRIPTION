@@ -9,6 +9,7 @@ Encoding: UTF-8
 Imports:
     broom,
     cli,
+    DALEX,
     data.table,
     digest,
     dplyr,
@@ -27,6 +28,7 @@ Imports:
     tarchetypes,
     testthat,
     tidymodels,
+    vip,
     ranger,
     xgboost,
     yaml

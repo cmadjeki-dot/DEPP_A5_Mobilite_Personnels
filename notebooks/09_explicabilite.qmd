@@ -1,0 +1,93 @@
+---
+title: "Explicabilité des modèles"
+subtitle: "Étape 15 — importance, dépendance partielle et SHAP"
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: initialisation
+library(gt)
+library(targets)
+
+results <- tar_read(explainability_results, store = here::here("_targets"))
+```
+
+::: {.callout-important}
+## Statut
+
+**`r results$status`**
+
+L'étape 13 n'a entraîné aucun modèle prédictif avec les données ouvertes. Il n'existe donc aucune importance globale, importance par permutation, dépendance partielle ou valeur SHAP empirique à présenter. Une explication sans modèle serait une fabrication.
+:::
+
+## Trois registres à ne pas confondre
+
+```{r}
+#| label: definitions
+results$definitions |>
+  gt() |>
+  tab_header(title = "Importance prédictive, association et causalité")
+```
+
+Une variable peut être importante pour la prédiction sans posséder un coefficient économétrique significatif, notamment en présence de non-linéarités, d'interactions ou de variables corrélées. Inversement, une association économétrique peut apporter peu de gain prédictif hors échantillon. Aucun de ces constats ne démontre qu'une intervention sur la variable modifierait la mobilité.
+
+## Contrat nécessaire
+
+```{r}
+#| label: contrat
+results$contract |>
+  gt() |>
+  tab_header(title = "Conditions préalables à l'explicabilité")
+```
+
+Les explications doivent porter sur le workflow final, avec le même prétraitement que lors de l'apprentissage. Les données d'explication doivent être hors échantillon et ne contenir aucune information postérieure à l'année `t`.
+
+## Outils retenus
+
+```{r}
+#| label: outils
+results$dependency |>
+  gt() |>
+  tab_header(title = "Choix et compatibilité des outils")
+```
+
+`vip` est prévu pour l'importance par permutation. `DALEX` fournit une seconde permutation, les profils de dépendance partielle et les contributions SHAP. `fastshap`, retiré de CRAN en 2026 et non installable depuis les sources testées sous R 4.6, n'est pas retenu; la fonctionnalité SHAP reste couverte par `DALEX::predict_parts(type = "shap")`.
+
+## Sorties conditionnelles
+
+```{r}
+#| label: sorties
+results$outputs |>
+  gt() |>
+  tab_header(title = "Sorties demandées et décision de production")
+```
+
+Le module [R/explainability.R](../R/explainability.R) prépare :
+
+- l'importance globale fondée sur la perte de ROC-AUC par permutation ;
+- une permutation indépendante avec `vip` et `DALEX` ;
+- des profils de dépendance partielle calculés par `DALEX::model_profile()` ;
+- des contributions SHAP locales et leur moyenne absolue globale ;
+- une comparaison encadrée avec les coefficients économétriques.
+
+Les importances de variables corrélées peuvent être partagées ou instables. Les profils partiels peuvent évaluer des combinaisons de caractéristiques rares ou irréalistes. Les valeurs SHAP dépendent du jeu de référence et expliquent la prédiction du modèle, pas le phénomène social lui-même.
+
+## Comparaison avec l'économétrie
+
+```{r}
+#| label: comparaison
+results$comparison_rules |>
+  gt() |>
+  tab_header(title = "Conditions d'une comparaison valide")
+```
+
+L'étape économétrique étudie l'absence d'une UAI dans le fichier 2025, tandis que la cible ML souhaitée est une mobilité individuelle à `t+1`. Ces issues et unités ne sont pas identiques. Les résultats économétriques existants ne sont donc pas comparés numériquement à des explications ML inexistantes.
+
+En résumé : **importance prédictive ≠ association statistique ≠ causalité**.

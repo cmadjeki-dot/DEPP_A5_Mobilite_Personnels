@@ -61,5 +61,9 @@ list(
   tar_target(
     evaluation_results,
     run_model_evaluation(modeling_results)
+  ),
+  tar_target(
+    explainability_results,
+    run_explainability_analysis(modeling_results, econometric_results)
   )
 )

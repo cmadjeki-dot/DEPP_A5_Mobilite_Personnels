@@ -9,6 +9,39 @@
     ]
   },
   "Packages": {
+    "DALEX": {
+      "Package": "DALEX",
+      "Version": "2.5.4",
+      "Source": "Repository",
+      "Title": "moDel Agnostic Language for Exploration and eXplanation",
+      "Authors@R": "c(person(\"Przemyslaw\", \"Biecek\", email = \"przemyslaw.biecek@gmail.com\", role = c(\"aut\", \"cre\"),  comment = c(ORCID = \"0000-0001-8423-1823\")), person(\"Szymon\", \"Maksymiuk\", role = \"aut\", comment = c(ORCID = \"0000-0002-3120-1601\")), person(\"Hubert\", \"Baniecki\", role = \"aut\", comment = c(ORCID = \"0000-0001-6661-5364\")))",
+      "Description": "Any unverified black box model is the path to failure. Opaqueness leads to distrust.  Distrust leads to ignoration. Ignoration leads to rejection.  DALEX package xrays any model and helps to explore and explain its behaviour. Machine Learning (ML) models are widely used and have various applications in classification  or regression. Models created with boosting, bagging, stacking or similar techniques are often used due to their high performance. But such black-box models usually lack direct interpretability. DALEX package contains various methods that help to understand the link between input variables  and model output. Implemented methods help to explore the model on the level of a single instance  as well as a level of the whole dataset. All model explainers are model agnostic and can be compared across different models. DALEX package is the cornerstone for 'DrWhy.AI' universe of packages for visual model exploration. Find more details in (Biecek 2018) <https://jmlr.org/papers/v19/18-416.html>.",
+      "License": "GPL",
+      "Encoding": "UTF-8",
+      "LazyData": "true",
+      "RoxygenNote": "7.3.2",
+      "Depends": [
+        "R (>= 3.5)"
+      ],
+      "Imports": [
+        "ggplot2",
+        "iBreakDown (>= 1.3.1)",
+        "ingredients (>= 2.0)",
+        "kernelshap"
+      ],
+      "Suggests": [
+        "gower",
+        "ranger",
+        "testthat",
+        "methods"
+      ],
+      "URL": "https://modeloriented.github.io/DALEX/, https://dalex.drwhy.ai",
+      "BugReports": "https://github.com/ModelOriented/DALEX/issues",
+      "NeedsCompilation": "no",
+      "Author": "Przemyslaw Biecek [aut, cre] (ORCID: <https://orcid.org/0000-0001-8423-1823>), Szymon Maksymiuk [aut] (ORCID: <https://orcid.org/0000-0002-3120-1601>), Hubert Baniecki [aut] (ORCID: <https://orcid.org/0000-0001-6661-5364>)",
+      "Maintainer": "Przemyslaw Biecek <przemyslaw.biecek@gmail.com>",
+      "Repository": "CRAN"
+    },
     "DBI": {
       "Package": "DBI",
       "Version": "1.3.0",
@@ -1436,6 +1469,42 @@
       "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
       "Repository": "CRAN"
     },
+    "doFuture": {
+      "Package": "doFuture",
+      "Version": "1.3.0",
+      "Source": "Repository",
+      "Title": "Use Foreach to Parallelize via the Future Framework",
+      "Depends": [
+        "foreach (>= 1.5.0)",
+        "future (>= 1.49.0)"
+      ],
+      "Imports": [
+        "future.apply",
+        "globals",
+        "iterators",
+        "parallel",
+        "utils"
+      ],
+      "Suggests": [
+        "doRNG (>= 1.8.2)",
+        "markdown",
+        "R.rsp"
+      ],
+      "VignetteBuilder": "R.rsp",
+      "Authors@R": "c(person(\"Henrik\", \"Bengtsson\", role = c(\"aut\", \"cre\", \"cph\"), email = \"henrikb@braju.com\", comment = c(ORCID = \"0000-0002-7579-5165\")))",
+      "Description": "The 'future' package provides a unifying parallelization framework for R that supports many parallel and distributed backends <doi:10.32614/RJ-2021-048>. The 'foreach' package provides a powerful API for iterating over an R expression in parallel. The 'doFuture' package brings the best of the two together. There are three ways to use this package. The recommended approach is to use 'y <- foreach(...) %do% { ... } |> futurize()' via the 'futurize' package (<doi:10.48550/arXiv.2601.17578>). The second alternative, which was formerly recommended, is to use 'y <- foreach(...) %dofuture% { ... }', which does not require using 'registerDoFuture()' and has many advantages over '%dopar%'. The third alternative is the traditional 'foreach' approach by registering the 'foreach' adapter 'registerDoFuture()' and so that 'y <- foreach(...) %dopar% { ... }' parallelizes with the 'future' framework.",
+      "License": "Apache License (>= 2)",
+      "LazyLoad": "TRUE",
+      "URL": "https://doFuture.futureverse.org, https://github.com/futureverse/doFuture",
+      "BugReports": "https://github.com/futureverse/doFuture/issues",
+      "Language": "en-US",
+      "Encoding": "UTF-8",
+      "Config/roxygen2/version": "8.0.0",
+      "NeedsCompilation": "no",
+      "Author": "Henrik Bengtsson [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-7579-5165>)",
+      "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
+      "Repository": "CRAN"
+    },
     "dplyr": {
       "Package": "dplyr",
       "Version": "1.2.1",
@@ -2073,6 +2142,36 @@
       "Author": "Mark van der Loo [aut, cre], David Turner [ctb]",
       "Repository": "CRAN"
     },
+    "gridExtra": {
+      "Package": "gridExtra",
+      "Version": "2.3.1",
+      "Source": "Repository",
+      "Authors@R": "c(person(\"Baptiste\", \"Auguie\", email = \"baptiste.auguie@vuw.ac.nz\", role = c(\"aut\", \"cre\")), person(\"Anton\", \"Antonov\", email = \"tonytonov@gmail.com\", role = c(\"ctb\")))",
+      "License": "GPL (>= 2)",
+      "Title": "Miscellaneous Functions for \"Grid\" Graphics",
+      "Type": "Package",
+      "Description": "Provides a number of user-level functions to work with \"grid\" graphics, notably to arrange multiple grid-based plots on a page, and draw tables.",
+      "VignetteBuilder": "knitr",
+      "Imports": [
+        "gtable",
+        "grid",
+        "grDevices",
+        "graphics",
+        "utils"
+      ],
+      "Suggests": [
+        "ggplot2",
+        "egg",
+        "lattice",
+        "knitr",
+        "testthat"
+      ],
+      "RoxygenNote": "6.0.1",
+      "NeedsCompilation": "no",
+      "Author": "Baptiste Auguie [aut, cre], Anton Antonov [ctb]",
+      "Maintainer": "Baptiste Auguie <baptiste.auguie@vuw.ac.nz>",
+      "Repository": "CRAN"
+    },
     "gt": {
       "Package": "gt",
       "Version": "1.3.0",
@@ -2375,6 +2474,43 @@
       "Maintainer": "Carson Sievert <carson@posit.co>",
       "Repository": "CRAN"
     },
+    "iBreakDown": {
+      "Package": "iBreakDown",
+      "Version": "2.1.2",
+      "Source": "Repository",
+      "Title": "Model Agnostic Instance Level Variable Attributions",
+      "Authors@R": "c(person(\"Przemyslaw\", \"Biecek\", email = \"przemyslaw.biecek@gmail.com\", role = c(\"aut\", \"cre\"),  comment = c(ORCID = \"0000-0001-8423-1823\")), person(\"Alicja\", \"Gosiewska\", role = \"aut\", comment = c(ORCID = \"0000-0001-6563-5742\")), person(\"Hubert\", \"Baniecki\", role = \"aut\", comment = c(ORCID = \"0000-0001-6661-5364\")), person(\"Adam\", \"Izdebski\", role = \"aut\"), person(\"Dariusz\", \"Komosinski\", role = \"ctb\"))",
+      "Description": "Model agnostic tool for decomposition of predictions from black boxes. Supports additive attributions and attributions with interactions. The Break Down Table shows contributions of every variable to a final prediction.  The Break Down Plot presents variable contributions in a concise graphical way.  This package works for classification and regression models.  It is an extension of the 'breakDown' package (Staniak and Biecek 2018) <doi:10.32614/RJ-2018-072>, with new and faster strategies for orderings.  It supports interactions in explanations and has interactive visuals (implemented with 'D3.js' library).  The methodology behind is described in the 'iBreakDown' article (Gosiewska and Biecek 2019) <arXiv:1903.11420> This package is a part of the 'DrWhy.AI' universe (Biecek 2018) <arXiv:1806.08915>.",
+      "Depends": [
+        "R (>= 3.5)"
+      ],
+      "License": "GPL-3",
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.2.2",
+      "Imports": [
+        "ggplot2"
+      ],
+      "Suggests": [
+        "DALEX",
+        "knitr",
+        "rmarkdown",
+        "randomForest",
+        "e1071",
+        "ranger",
+        "nnet",
+        "testthat",
+        "r2d3",
+        "jsonlite",
+        "covr"
+      ],
+      "VignetteBuilder": "knitr",
+      "URL": "https://ModelOriented.github.io/iBreakDown/, https://github.com/ModelOriented/iBreakDown",
+      "BugReports": "https://github.com/ModelOriented/iBreakDown/issues",
+      "NeedsCompilation": "no",
+      "Author": "Przemyslaw Biecek [aut, cre] (<https://orcid.org/0000-0001-8423-1823>), Alicja Gosiewska [aut] (<https://orcid.org/0000-0001-6563-5742>), Hubert Baniecki [aut] (<https://orcid.org/0000-0001-6661-5364>), Adam Izdebski [aut], Dariusz Komosinski [ctb]",
+      "Maintainer": "Przemyslaw Biecek <przemyslaw.biecek@gmail.com>",
+      "Repository": "CRAN"
+    },
     "igraph": {
       "Package": "igraph",
       "Version": "2.3.3",
@@ -2498,6 +2634,44 @@
       "NeedsCompilation": "no",
       "Author": "Andrew Bray [aut], Chester Ismay [aut] (ORCID: <https://orcid.org/0000-0003-2820-2547>), Evgeni Chasnovski [aut] (ORCID: <https://orcid.org/0000-0002-1617-4019>), Simon Couch [aut, cre] (ORCID: <https://orcid.org/0000-0001-5676-5107>), Ben Baumer [aut] (ORCID: <https://orcid.org/0000-0002-3279-0516>), Mine Cetinkaya-Rundel [aut] (ORCID: <https://orcid.org/0000-0001-6452-2420>), Ted Laderas [ctb] (ORCID: <https://orcid.org/0000-0002-6207-7068>), Nick Solomon [ctb], Johanna Hardin [ctb], Albert Y. Kim [ctb] (ORCID: <https://orcid.org/0000-0001-7824-306X>), Neal Fultz [ctb], Doug Friedman [ctb], Richie Cotton [ctb] (ORCID: <https://orcid.org/0000-0003-2504-802X>), Brian Fannin [ctb]",
       "Maintainer": "Simon Couch <simon.couch@posit.co>",
+      "Repository": "CRAN"
+    },
+    "ingredients": {
+      "Package": "ingredients",
+      "Version": "2.3.0",
+      "Source": "Repository",
+      "Title": "Effects and Importances of Model Ingredients",
+      "Authors@R": "c(person(\"Przemyslaw\", \"Biecek\", email = \"przemyslaw.biecek@gmail.com\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0001-8423-1823\")), person(\"Hubert\", \"Baniecki\", role = \"aut\", comment = c(ORCID = \"0000-0001-6661-5364\")), person(\"Adam\", \"Izdebski\", role = \"ctb\"))",
+      "Description": "Collection of tools for assessment of feature importance and feature effects. Key functions are: feature_importance() for assessment of global level feature importance, ceteris_paribus() for calculation of the what-if plots, partial_dependence() for partial dependence plots, conditional_dependence() for conditional dependence plots, accumulated_dependence() for accumulated local effects plots, aggregate_profiles() and cluster_profiles() for aggregation of ceteris paribus profiles, generic print() and plot() for better usability of selected explainers, generic plotD3() for interactive, D3 based explanations, and generic describe() for explanations in natural language. The package 'ingredients' is a part of the 'DrWhy.AI' universe (Biecek 2018) <arXiv:1806.08915>.",
+      "Depends": [
+        "R (>= 3.5)"
+      ],
+      "License": "GPL-3",
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.2.3",
+      "Imports": [
+        "ggplot2",
+        "scales",
+        "gridExtra",
+        "methods"
+      ],
+      "Suggests": [
+        "DALEX",
+        "gower",
+        "ranger",
+        "testthat",
+        "r2d3",
+        "jsonlite",
+        "knitr",
+        "rmarkdown",
+        "covr"
+      ],
+      "URL": "https://ModelOriented.github.io/ingredients/, https://github.com/ModelOriented/ingredients",
+      "BugReports": "https://github.com/ModelOriented/ingredients/issues",
+      "VignetteBuilder": "knitr",
+      "NeedsCompilation": "no",
+      "Author": "Przemyslaw Biecek [aut, cre] (<https://orcid.org/0000-0001-8423-1823>), Hubert Baniecki [aut] (<https://orcid.org/0000-0001-6661-5364>), Adam Izdebski [ctb]",
+      "Maintainer": "Przemyslaw Biecek <przemyslaw.biecek@gmail.com>",
       "Repository": "CRAN"
     },
     "ipred": {
@@ -2672,6 +2846,36 @@
       "NeedsCompilation": "no",
       "Author": "Richard Iannone [aut, cre, cph] (<https://orcid.org/0000-0003-3925-190X>), Automattic [cph] (juice library), juice contributors [ctb] (juice library)",
       "Maintainer": "Richard Iannone <riannone@me.com>",
+      "Repository": "CRAN"
+    },
+    "kernelshap": {
+      "Package": "kernelshap",
+      "Version": "0.9.1",
+      "Source": "Repository",
+      "Title": "Kernel SHAP",
+      "Authors@R": "c( person(\"Michael\", \"Mayer\", , \"mayermichael79@gmail.com\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0009-0007-2540-9629\")), person(\"David\", \"Watson\", , \"david.s.watson11@gmail.com\", role = \"aut\", comment = c(ORCID = \"0000-0001-9632-2159\")), person(\"Przemyslaw\", \"Biecek\", , \"przemyslaw.biecek@gmail.com\", role = \"ctb\", comment = c(ORCID = \"0000-0001-8423-1823\")) )",
+      "Description": "Efficient implementation of Kernel SHAP (Lundberg and Lee, 2017, <doi:10.48550/arXiv.1705.07874>) permutation SHAP, and additive SHAP for model interpretability.  For Kernel SHAP and permutation SHAP, if the number of features is too large for exact calculations, the algorithms iterate until the SHAP values are sufficiently precise in terms of their standard errors.  The package integrates smoothly with meta-learning packages such as 'tidymodels', 'caret' or 'mlr3'. It supports multi-output models, case weights, and parallel computations.  Visualizations can be done using the R package 'shapviz'.",
+      "License": "GPL (>= 2)",
+      "Depends": [
+        "R (>= 3.2.0)"
+      ],
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Imports": [
+        "doFuture",
+        "foreach",
+        "stats",
+        "utils"
+      ],
+      "Suggests": [
+        "testthat (>= 3.0.0)"
+      ],
+      "Config/testthat/edition": "3",
+      "URL": "https://github.com/ModelOriented/kernelshap",
+      "BugReports": "https://github.com/ModelOriented/kernelshap/issues",
+      "NeedsCompilation": "no",
+      "Author": "Michael Mayer [aut, cre] (ORCID: <https://orcid.org/0009-0007-2540-9629>), David Watson [aut] (ORCID: <https://orcid.org/0000-0001-9632-2159>), Przemyslaw Biecek [ctb] (ORCID: <https://orcid.org/0000-0001-8423-1823>)",
+      "Maintainer": "Michael Mayer <mayermichael79@gmail.com>",
       "Repository": "CRAN"
     },
     "knitr": {
@@ -5479,6 +5683,45 @@
       "Maintainer": "Vitalie Spinu <spinuvit@gmail.com>",
       "Repository": "CRAN"
     },
+    "tinyplot": {
+      "Package": "tinyplot",
+      "Version": "0.7.0",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "Lightweight Extension of the Base R Graphics System",
+      "Date": "2026-07-02",
+      "Authors@R": "c( person( given = \"Grant\", family = \"McDermott\", role = c(\"aut\", \"cre\"), email = \"contact@grantmcdermott.com\", comment = c(ORCID = \"0000-0001-7883-8573\") ), person( given = \"Vincent\", family = \"Arel-Bundock\", role = \"aut\", email = \"vincent.arel-bundock@umontreal.ca\", comment = c(ORCID = \"0000-0003-1995-6531\") ), person( given = \"Achim\", family = \"Zeileis\", role = \"aut\", email = \"Achim.Zeileis@R-project.org\", comment = c(ORCID = \"0000-0003-0918-3766\") ), person( given = \"Etienne\", family = \"Bacher\", role = \"ctb\", email = \"etienne.bacher@protonmail.com\" ) )",
+      "Description": "Lightweight extension of the base R graphics system, with support for automatic legends, facets, themes, and various other enhancements.",
+      "License": "Apache License (>= 2)",
+      "Depends": [
+        "R (>= 4.0.0)"
+      ],
+      "Imports": [
+        "graphics",
+        "grDevices",
+        "stats",
+        "tools",
+        "utils"
+      ],
+      "Suggests": [
+        "fontquiver",
+        "png",
+        "rsvg",
+        "svglite (>= 2.2.0)",
+        "tinytest",
+        "tinysnapshot (>= 0.0.3)",
+        "knitr"
+      ],
+      "Config/Needs/website": "altdoc (>= 0.7.2), future.apply",
+      "Encoding": "UTF-8",
+      "URL": "https://grantmcdermott.com/tinyplot/",
+      "BugReports": "https://github.com/grantmcdermott/tinyplot/issues",
+      "Config/roxygen2/version": "8.0.0",
+      "NeedsCompilation": "no",
+      "Author": "Grant McDermott [aut, cre] (ORCID: <https://orcid.org/0000-0001-7883-8573>), Vincent Arel-Bundock [aut] (ORCID: <https://orcid.org/0000-0003-1995-6531>), Achim Zeileis [aut] (ORCID: <https://orcid.org/0000-0003-0918-3766>), Etienne Bacher [ctb]",
+      "Maintainer": "Grant McDermott <contact@grantmcdermott.com>",
+      "Repository": "CRAN"
+    },
     "tinytex": {
       "Package": "tinytex",
       "Version": "0.61",
@@ -5728,6 +5971,81 @@
       "Author": "Hadley Wickham [aut], Lionel Henry [aut], Davis Vaughan [aut, cre], data.table team [cph] (Radix sort based on data.table's forder() and their contribution to R's order()), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Davis Vaughan <davis@posit.co>",
       "Repository": "CRAN"
+    },
+    "vip": {
+      "Package": "vip",
+      "Version": "0.5.0.9000",
+      "Source": "GitHub",
+      "Type": "Package",
+      "Title": "Variable Importance Plots",
+      "Authors@R": "c( person(c(\"Brandon\", \"M.\"), family = \"Greenwell\",  email = \"greenwell.brandon@gmail.com\", role = c(\"aut\", \"cre\"),  comment = c(ORCID = \"0000-0002-8120-0084\")), person(\"Brad\", \"Boehmke\", email = \"bradleyboehmke@gmail.com\", role = c(\"aut\"), comment = c(ORCID = \"0000-0002-3611-8516\")) )",
+      "Description": "A general framework for constructing variable importance plots from  various types of machine learning models in R. Aside from some standard model- specific variable importance measures, this package also provides model- agnostic approaches that can be applied to any supervised learning algorithm. These include 1) an efficient permutation-based variable importance measure,  2) variable importance based on Shapley values (Strumbelj and Kononenko,  2014) <doi:10.1007/s10115-013-0679-x>, and 3) the variance-based  approach described in Greenwell et al. (2018) <doi:10.48550/arXiv.1805.04755>. A  variance-based method for quantifying the relative strength of interaction  effects is also included (see the previous reference for details).",
+      "License": "GPL (>= 2)",
+      "URL": "https://github.com/bgreenwell/vip, https://bgreenwell.github.io/vip/, https://bgreenwell.r-universe.dev/vip",
+      "BugReports": "https://github.com/bgreenwell/vip/issues",
+      "Encoding": "UTF-8",
+      "VignetteBuilder": "knitr",
+      "Depends": [
+        "R (>= 4.1.0)"
+      ],
+      "Imports": [
+        "stats",
+        "tinyplot (>= 0.3.0)",
+        "utils"
+      ],
+      "Suggests": [
+        "covr",
+        "doParallel",
+        "fastshap (>= 0.1.0)",
+        "foreach",
+        "knitr",
+        "mlbench",
+        "modeldata",
+        "NeuralNetTools",
+        "pdp",
+        "rmarkdown",
+        "rpart",
+        "tinytest (>= 1.4.3)",
+        "varImp",
+        "yardstick"
+      ],
+      "Enhances": [
+        "C50",
+        "caret",
+        "Cubist",
+        "earth",
+        "gbm",
+        "glmnet",
+        "h2o",
+        "lightgbm",
+        "mixOmics",
+        "mlr",
+        "mlr3",
+        "neuralnet",
+        "nnet",
+        "parsnip (>= 0.1.7)",
+        "party",
+        "partykit",
+        "pls",
+        "randomForest",
+        "ranger",
+        "RSNNS",
+        "sparklyr (>= 0.8.0)",
+        "tidymodels",
+        "workflows (>= 0.2.3)",
+        "xgboost (>= 3.2.0)"
+      ],
+      "Additional_repositories": "https://bgreenwell.r-universe.dev",
+      "RoxygenNote": "7.3.3",
+      "Roxygen": "list(markdown = TRUE)",
+      "Author": "Brandon M. Greenwell [aut, cre] (ORCID: <https://orcid.org/0000-0002-8120-0084>), Brad Boehmke [aut] (ORCID: <https://orcid.org/0000-0002-3611-8516>)",
+      "Maintainer": "Brandon M. Greenwell <greenwell.brandon@gmail.com>",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "koalaverse",
+      "RemoteRepo": "vip",
+      "RemoteRef": "devel",
+      "RemoteSha": "6cd2847d4fbccc073945ddcb20adba08137b7d35"
     },
     "viridisLite": {
       "Package": "viridisLite",
