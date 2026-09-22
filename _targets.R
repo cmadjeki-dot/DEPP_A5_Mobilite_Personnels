@@ -21,5 +21,9 @@ list(
   tar_target(
     quality_report,
     run_quality_audit(source_manifest, import_results)
+  ),
+  tar_target(
+    cleaned_data,
+    run_all_cleaning(source_manifest, quality_report)
   )
 )
