@@ -53,5 +53,9 @@ list(
   tar_target(
     survival_results,
     run_survival_analysis(panel_data)
+  ),
+  tar_target(
+    modeling_results,
+    run_machine_learning_analysis(panel_data)
   )
 )

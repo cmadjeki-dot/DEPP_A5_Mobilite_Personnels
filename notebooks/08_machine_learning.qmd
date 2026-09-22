@@ -1,0 +1,89 @@
+---
+title: "Machine Learning — mobilité à t+1"
+subtitle: "Étape 13 — audit de faisabilité et pipeline temporel"
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: initialisation
+library(gt)
+library(targets)
+
+results <- tar_read(modeling_results, store = here::here("_targets"))
+```
+
+::: {.callout-important}
+## Conclusion
+
+**La mobilité individuelle à t+1 ne peut pas être prédite avec les données ouvertes acquises.** Aucun identifiant personnel ni événement individuel de mobilité n'est publié. Les millésimes 2024 et 2025 ne fournissent qu'une transition au niveau établissement, insuffisante pour séparer entraînement, réglage et test dans le temps.
+
+Aucun modèle n'est entraîné et aucune métrique prédictive n'est publiée. La disparition d'une UAI du fichier n'est pas transformée en mobilité d'un personnel.
+:::
+
+## Cible et protocole requis
+
+```{r}
+#| label: definition
+results$definition |>
+  gt() |>
+  tab_header(title = "Définition scientifique du problème prédictif")
+```
+
+Une ligne d'apprentissage devra représenter un personnel à l'année `t`. La cible indiquera si la mobilité précisément définie survient entre `t` et `t+1`. Tous les prédicteurs devront être connus au plus tard à `t`.
+
+## Audit de faisabilité
+
+```{r}
+#| label: audit
+results$feasibility |>
+  gt() |>
+  tab_header(title = "Conditions nécessaires à un apprentissage temporel")
+```
+
+Au moins quatre millésimes sont demandés : ils fournissent trois années d'origine permettant un train ancien, une validation ultérieure et un test sur la dernière transition. Avec une seule transition, tout tuning réutiliserait directement ou indirectement la période de test.
+
+## Prévention des fuites
+
+```{r}
+#| label: fuites
+results$leakage |>
+  gt() |>
+  tab_header(title = "Barrières anti-fuite")
+```
+
+Le statut d'éducation prioritaire issu du snapshot 2026 est explicitement exclu pour toute cible antérieure. L'identifiant et l'année servent à construire les coupures, mais sont retirés des prédicteurs. L'imputation, la gestion des modalités et la normalisation sont estimées à l'intérieur de chaque fold via la `recipe`.
+
+## Pipeline `tidymodels` conditionnel
+
+Le module [R/modeling.R](../R/modeling.R) prépare les composants suivants, qui ne sont exécutés que si le contrat de données est satisfait :
+
+```{r}
+#| label: choix
+results$choices |>
+  gt() |>
+  tab_header(title = "Choix de modélisation et justification")
+```
+
+La chaîne prévue comprend :
+
+1. une partition par années d'origine, sans tirage aléatoire transversal ;
+2. des rééchantillonnages croissants où chaque assessment est postérieur à son analysis ;
+3. une `recipe` avec gestion des modalités inconnues et nouvelles, imputation médiane, suppression des prédicteurs sans variance et normalisation numérique ;
+4. une régression logistique pénalisée avec `glmnet` ;
+5. une forêt aléatoire `ranger` ;
+6. un gradient boosting `xgboost` ;
+7. un `tune_grid()` évalué prioritairement par PR-AUC, complété par ROC-AUC et balanced accuracy ;
+8. une évaluation finale unique sur la dernière année avec `last_fit()` après sélection du workflow.
+
+Les hyperparamètres prévus sont la pénalisation et le mélange pour la régression, `mtry` et `min_n` pour la forêt, puis `mtry`, profondeur, taux d'apprentissage, réduction de perte et `min_n` pour le boosting. Les graines aléatoires sont fixées.
+
+## Portée des futurs résultats
+
+Même avec les données internes, les performances décriront une capacité prédictive sur une période ultérieure comparable. Elles ne démontreront ni mécanisme explicatif ni effet causal. Une performance devra être accompagnée de sa prévalence, d'intervalles issus des folds temporels, d'une calibration et d'une comparaison à un modèle de référence.
