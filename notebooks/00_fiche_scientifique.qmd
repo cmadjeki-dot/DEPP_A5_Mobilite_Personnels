@@ -1,0 +1,317 @@
+---
+title: "Fiche d'identite scientifique"
+subtitle: "Analyse statistique des parcours et des mobilites des personnels enseignants"
+author: "Projet DEPP A5 Mobilite des personnels"
+date: last-modified
+lang: fr
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    embed-resources: true
+execute:
+  enabled: false
+---
+
+::: {.callout-important}
+## Statut du document
+
+Cette fiche formalise le cadre scientifique **avant toute analyse**. Les sources,
+variables, granularites et periodes effectivement disponibles seront verifiees a
+l'ETAPE 2. Les hypotheses sont des propositions a confronter aux donnees, et non
+des resultats. Aucune interpretation causale ne sera produite sans strategie
+d'identification appropriee.
+:::
+
+## Identite du projet
+
+| Rubrique | Formalisation |
+|---|---|
+| **NOM_PROJET** | `DEPP_A5_Mobilite_Personnels` |
+| **TITRE** | Analyse statistique des parcours et des mobilites des personnels enseignants |
+| **CONTEXTE** | La connaissance des mobilites contribue au pilotage des ressources humaines, a l'analyse des inegalites territoriales d'attractivite et de stabilite, et a l'anticipation des besoins en personnels. Le projet s'inscrit dans une logique de statistique publique : transparence des concepts, qualite des donnees, prudence interpretative et reproductibilite. |
+| **SUJET** | Mobilites geographiques, professionnelles et organisationnelles des personnels enseignants, ainsi que leurs trajectoires dans le temps. |
+| **PROBLEMATIQUE** | Quels facteurs individuels, professionnels, territoriaux et organisationnels sont associes aux mobilites des personnels enseignants, comment ces mobilites s'inscrivent-elles dans leurs trajectoires, et dans quelle mesure peut-on anticiper leur survenue sans confondre prediction et causalite ? |
+| **OBJECTIF_PRINCIPAL** | Construire un cadre statistique reproductible permettant de decrire les mobilites, d'etudier les trajectoires, d'estimer des associations conditionnelles et, si les donnees le permettent, d'evaluer des modeles predictifs hors echantillon. |
+| **PUBLIC_CIBLE** | Services statistiques ministeriels, bureaux de gestion et de pilotage RH, decideurs publics, chercheurs, data scientists publics et candidats souhaitant evaluer la robustesse du demonstrateur. |
+| **LIVRABLE_FINAL** | Un demonstrateur reproductible associant pipeline `targets`, analyses documentees, rapport methodologique Quarto, note de synthese de type statistique publique et dashboard, sous reserve des donnees effectivement accessibles. |
+
+## Objectifs
+
+### OBJECTIFS_SECONDAIRES
+
+1. Definir une taxonomie explicite des mobilites observees ou approchables.
+2. Mesurer leur frequence, leur intensite et leur heterogeneite temporelle et territoriale.
+3. Decrire les transitions entre positions professionnelles lorsque des donnees longitudinales le permettent.
+4. Etudier la duree avant une mobilite et la recurrence des mobilites, sous reserve d'un suivi individuel ou d'une structure equivalente.
+5. Quantifier les associations entre mobilite et caracteristiques disponibles, sans interpretation causale abusive.
+6. Evaluer la faisabilite et la performance hors echantillon d'une prediction de mobilite.
+7. Documenter les biais de mesure, de selection, de couverture et d'appariement.
+8. Produire des resultats lisibles, auditables et reproductibles pour un usage de statistique publique.
+
+## Perimetre statistique
+
+| Rubrique | Definition scientifique et statut |
+|---|---|
+| **POPULATION** | Population d'interet : personnels enseignants relevant du ministere charge de l'Education nationale. Population effectivement observable : a definir apres audit des sources ouvertes. Les personnels non enseignants ne seront inclus que si une source l'impose et permet de les identifier separement. |
+| **CHAMP** | France, secteurs public et/ou prive sous contrat, premier et/ou second degre selon la couverture verifiee des sources. Les extensions ultramarines, statuts particuliers et changements de champ seront documentes explicitement. **A confirmer a l'ETAPE 2.** |
+| **UNITE_STATISTIQUE** | Unite analytique ideale : enseignant-annee, permettant de comparer une position en `t` et `t+1`. Unites ouvertes possibles : etablissement-annee, departement-annee, academie-annee ou agregat national. L'unite retenue dependra exclusivement de la granularite verifiee. |
+| **PERIODE** | La plus longue periode homogene disponible, avec identification des ruptures de serie et des changements de nomenclature. Les bornes ne sont pas fixees avant l'audit des millesimes. |
+| **VARIABLE_CIBLE** | Cible principale ideale : indicatrice d'une mobilite entre `t` et `t+1`. Cibles secondaires possibles : type de mobilite, destination, mobilites repetees ou duree avant mobilite. Si aucun identifiant longitudinal public n'existe, seules des mesures agregees ou des proxys explicitement nommes pourront etre utilises. |
+| **VARIABLES_EXPLICATIVES** | Familles candidates, sous reserve de disponibilite : caracteristiques individuelles (age, sexe), professionnelles (corps, grade, anciennete, discipline, degre, quotite), poste et etablissement (type, education prioritaire, taille), territoire (academie, departement, ruralite, contexte socio-economique), organisation et conjoncture (annee, politiques ou changements de nomenclature). Aucune variable n'est tenue pour disponible avant verification. |
+
+## Concepts et taxonomie de la mobilite
+
+La mobilite sera definie comme un **changement observable de position entre deux
+dates de reference comparables**. La taxonomie candidate distingue :
+
+- mobilite geographique : changement d'etablissement, de commune, de departement
+  ou d'academie ;
+- mobilite professionnelle : changement de corps, grade, fonction, discipline
+  ou type de poste ;
+- mobilite organisationnelle : changement de secteur, degre, type
+  d'etablissement ou dispositif ;
+- sortie du champ observe : depart reel, retraite, interruption ou simple perte
+  d'observation, a ne pas confondre sans information complementaire ;
+- absence de mobilite observee : stabilite au niveau de granularite disponible,
+  qui ne garantit pas l'absence de tout changement professionnel.
+
+La definition operationnelle, les dates de reference et la hierarchie des types
+seront figees seulement apres examen des dictionnaires de donnees.
+
+## Quatre registres d'analyse
+
+| Registre | Question statistique | Unite requise | Resultat attendu | Interpretation autorisee |
+|---|---|---|---|---|
+| **Description** | Combien, ou, quand et pour quels groupes observe-t-on des mobilites ? | Coupe ou agregat temporel documente | Taux, distributions, ecarts et cartes | Constat descriptif sur le champ observe |
+| **Longitudinal** | Comment les positions et mobilites s'enchainent-elles dans le temps ? | Identifiant stable ou panel coherent | Transitions, sequences, recurrence, durees | Dynamique observee, sous hypotheses de suivi |
+| **Explicatif** | Quelles caracteristiques sont associees a la mobilite toutes choses observees egales par ailleurs ? | Donnees individuelles ou agregees adaptees | Effets marginaux ou associations conditionnelles | Association statistique ; pas de causalite automatique |
+| **Predictif** | Peut-on anticiper une mobilite future pour de nouvelles observations ? | Historique avec cible future et validation temporelle | Performance hors echantillon et calibration | Capacite predictive, sans interpretation causale |
+
+Les comparaisons causales sont hors du coeur de cette fiche. Elles exigeraient
+une intervention, un contrefactuel et une strategie d'identification explicite.
+
+## QUESTIONS_RECHERCHE et HYPOTHESES
+
+### QR1 — Niveau et composition des mobilites (description)
+
+**Question →** Quelle est la frequence des mobilites et comment se repartissent-elles
+par type, annee et sous-population observable ?
+
+**Hypothese →** **H1.** La frequence et la composition des mobilites sont
+heterogenes selon les categories professionnelles et les annees.
+
+**Donnees necessaires →** Positions comparables en `t` et `t+1`, categorie
+professionnelle, type de changement, poids eventuels et champ constant.
+
+**Indicateur →** Taux annuel de mobilite, distribution des types de mobilite,
+intervalle de confiance si un plan d'echantillonnage le justifie.
+
+**Methode envisagee →** Statistique descriptive, tableaux croises, series
+temporelles et decomposition des ecarts.
+
+### QR2 — Heterogeneites territoriales (description)
+
+**Question →** Les territoires presentent-ils des niveaux distincts de mobilite,
+d'entrees, de sorties ou de stabilite ?
+
+**Hypothese →** **H2.** Les indicateurs de mobilite different entre territoires,
+en lien avec leur contexte et leur attractivite observable.
+
+**Donnees necessaires →** Territoire d'origine et de destination, effectifs
+exposes, annee, referentiel geographique harmonise et variables contextuelles.
+
+**Indicateur →** Taux de sortie, taux d'entree, solde et matrice de flux, avec
+effectifs denominateurs explicites.
+
+**Methode envisagee →** Description territoriale, cartographie prudente,
+standardisation eventuelle et analyse de sensibilite aux petits effectifs.
+
+### QR3 — Transitions professionnelles (longitudinal)
+
+**Question →** Quelles transitions entre positions professionnelles structurent
+les parcours observes ?
+
+**Hypothese →** **H3.** Certaines transitions sont plus frequentes et certains
+etats constituent des positions de passage ou de stabilite.
+
+**Donnees necessaires →** Identifiant stable pseudonymise, position annuelle,
+dates comparables et nomenclatures harmonisees.
+
+**Indicateur →** Matrice de transition, probabilite de maintien, nombre et ordre
+des transitions.
+
+**Methode envisagee →** Panel, matrices de transition et analyse de sequences si
+la profondeur temporelle et les effectifs le permettent.
+
+### QR4 — Duree avant mobilite (longitudinal)
+
+**Question →** Comment evolue la duree avant une premiere mobilite observee ?
+
+**Hypothese →** **H4.** Le risque de mobilite varie avec la duree dans la position
+et avec des caracteristiques professionnelles observables.
+
+**Donnees necessaires →** Date d'entree dans l'etat, date de mobilite ou de
+censure, historique individuel et variables susceptibles de varier dans le temps.
+
+**Indicateur →** Duree mediane sans mobilite, probabilite de survie et taux de
+risque par periode.
+
+**Methode envisagee →** Kaplan-Meier, risques proportionnels de Cox apres controle
+de l'hypothese de proportionnalite, ou modele de duree en temps discret.
+
+### QR5 — Caracteristiques individuelles et professionnelles (explicatif)
+
+**Question →** Quelles caracteristiques observees sont associees a la probabilite
+de mobilite, conditionnellement aux autres variables disponibles ?
+
+**Hypothese →** **H5.** Les associations avec la mobilite different selon le stade
+de carriere, le statut et les caracteristiques du poste.
+
+**Donnees necessaires →** Cible de mobilite, covariables individuelles et
+professionnelles verifiees, annee et structure de dependance des observations.
+
+**Indicateur →** Probabilites ajustees, effets marginaux, rapports de cotes ou
+risques relatifs selon le modele retenu.
+
+**Methode envisagee →** Regression logistique ou modele de panel ; erreurs
+standards robustes ou groupees ; diagnostics de specification et colinearite.
+
+### QR6 — Contexte territorial et organisationnel (explicatif)
+
+**Question →** Le contexte territorial et organisationnel reste-t-il associe a la
+mobilite apres prise en compte de la composition observable des personnels ?
+
+**Hypothese →** **H6.** Des ecarts territoriaux persistent apres ajustement, sans
+que cette persistance suffise a demontrer un effet causal du territoire.
+
+**Donnees necessaires →** Donnees de mobilite et de composition, identifiants
+territoriaux harmonises, caracteristiques d'etablissement et variables INSEE ou
+publiques appariables au bon niveau.
+
+**Indicateur →** Ecarts ajustes, variance interterritoriale et effets marginaux.
+
+**Methode envisagee →** Effets fixes temporels et territoriaux, modele multiniveau
+si justifie, tests de robustesse aux specifications et niveaux d'agregation.
+
+### QR7 — Prediction d'une mobilite future (predictif)
+
+**Question →** Les informations disponibles en `t` permettent-elles de predire une
+mobilite en `t+1` mieux qu'une regle de reference ?
+
+**Hypothese →** **H7.** Un modele parcimonieux apporte un gain hors echantillon par
+rapport a la prevalence seule, mais ce gain peut etre limite par les variables
+ouvertes et les changements temporels.
+
+**Donnees necessaires →** Cible future sans fuite d'information, predicteurs
+connus a la date de prediction, plusieurs millesimes et echantillon de test futur.
+
+**Indicateur →** Aire sous la courbe precision-rappel, ROC-AUC, Brier score,
+calibration et sensibilite a des seuils metier explicites.
+
+**Methode envisagee →** Modele de reference, regression penalisee, foret aleatoire
+ou boosting uniquement apres les analyses descriptives ; validation temporelle,
+reechantillonnage et comparaison hors echantillon.
+
+### QR8 — Equite des performances predictives (predictif)
+
+**Question →** Les erreurs de prediction sont-elles reparties de maniere homogene
+entre groupes et territoires observables ?
+
+**Hypothese →** **H8.** Les performances peuvent varier avec les effectifs, la
+qualite de mesure et la representation des groupes dans les donnees.
+
+**Donnees necessaires →** Predictions hors echantillon, cible observee, groupes
+d'evaluation licites et effectifs suffisants.
+
+**Indicateur →** Calibration, sensibilite, specificite et taux d'erreur par groupe,
+avec incertitude et controle des petits effectifs.
+
+**Methode envisagee →** Audit de performance stratifie, intervalles par bootstrap
+si pertinent et analyse de sensibilite ; aucun usage decisionnel individuel n'est
+prevu dans le demonstrateur.
+
+## Indicateurs candidats
+
+Les definitions suivantes sont conceptuelles et devront etre adaptees a l'unite
+et aux variables reellement disponibles.
+
+| **INDICATEURS** | Definition candidate | Denominateur / vigilance |
+|---|---|---|
+| Taux de mobilite | Nombre d'enseignants mobiles entre `t` et `t+1` rapporte aux enseignants exposes en `t` | Champ constant, attrition distincte d'une sortie |
+| Taux de stabilite | Part sans changement observable au niveau retenu | Depend de la granularite d'observation |
+| Taux d'entree | Entrees dans un territoire ou etat rapportees a une population de reference explicite | Choix du denominateur a justifier |
+| Taux de sortie | Sorties d'un territoire ou etat rapportees aux presents en debut de periode | Distinguer destination connue et perte de suivi |
+| Solde de mobilite | Entrees moins sorties | A presenter avec les flux bruts et la taille du territoire |
+| Distance de mobilite | Distance entre origine et destination | Necessite des localisations comparables ; ne resume pas toute mobilite |
+| Intensite du parcours | Nombre de transitions observees par personne et duree de suivi | Sensible a la profondeur du panel |
+| Duree sans mobilite | Temps entre entree dans l'etat et mobilite ou censure | Definir origine du temps et censures |
+| Performance predictive | Brier, calibration, PR-AUC et ROC-AUC | Evaluation exclusivement hors echantillon |
+
+## METHODES envisagees
+
+La progression methodologique respectera l'ordre suivant :
+
+1. audit documentaire, dictionnaires, metadonnees et qualite ;
+2. harmonisation temporelle, geographique et professionnelle ;
+3. description univariee et bivariee avec denominateurs explicites ;
+4. construction et controle du panel si un identifiant stable est disponible ;
+5. matrices de transition, sequences et analyse de survie si identifiables ;
+6. modeles explicatifs avec diagnostics, incertitude et tests de robustesse ;
+7. modeles predictifs avec separation temporelle apprentissage/test ;
+8. calibration, explicabilite et analyse des erreurs ;
+9. restitution statistique et territoriale avec protection des petits effectifs.
+
+## LIVRABLES scientifiques prevus
+
+- fiche d'identite scientifique ;
+- catalogue audite des sources et dictionnaire des variables ;
+- rapport de qualite et journal des transformations ;
+- base harmonisee et, si possible, panel documente ;
+- tableaux d'indicateurs avec metadonnees et denominateurs ;
+- analyses descriptive, longitudinale, territoriale et explicative ;
+- analyse predictive uniquement si la cible et la validation sont defendables ;
+- rapport methodologique Quarto et note de synthese ;
+- dashboard agrege respectant les regles de diffusion ;
+- pipeline `targets`, tests automatises et environnement `renv`.
+
+## LIMITES et risques anticipes
+
+1. **Acces aux microdonnees.** Les donnees individuelles administratives utiles
+   peuvent ne pas etre ouvertes ; le demonstrateur ne pretend pas y avoir acces.
+2. **Identification longitudinale.** Sans identifiant stable, les trajectoires
+   individuelles, la recurrence et les durees ne sont pas estimables directement.
+3. **Mesure de la mobilite.** Un changement observable depend de la date de
+   reference, de la granularite et des nomenclatures disponibles.
+4. **Attrition et sorties du champ.** Une disparition des donnees ne prouve ni un
+   depart du metier ni une mobilite.
+5. **Ruptures de serie.** Reorganisations territoriales, changements de systeme
+   d'information et revisions de nomenclature peuvent limiter les comparaisons.
+6. **Variables omises.** Preferences, contraintes familiales, demandes de mutation
+   et conditions locales fines peuvent etre absentes des donnees ouvertes.
+7. **Biais ecologique.** Une association sur donnees agregees ne sera pas transposee
+   aux individus.
+8. **Petits effectifs.** La confidentialite, l'instabilite et le secret statistique
+   peuvent imposer regroupements ou masquages.
+9. **Causalite.** Les modeles explicatifs mesureront des associations conditionnelles
+   tant qu'aucun dispositif causal credible n'est etabli.
+10. **Prediction.** Une bonne performance moyenne ne justifie ni une decision
+    individuelle ni un usage RH automatise.
+11. **Simulation eventuelle.** Toute simulation methodologique sera separee,
+    etiquetee et jamais presentee comme un resultat empirique sur les enseignants.
+
+## Criteres de decision pour la suite
+
+L'ETAPE 2 devra determiner, preuves documentaires a l'appui :
+
+- quelles mobilites sont directement observables ;
+- si un suivi individuel est possible et licite ;
+- quels champs, millesimes et territoires sont comparables ;
+- quelles variables existent reellement ;
+- quelles questions doivent etre reformulees ou abandonnees ;
+- quelles analyses pourront utiliser des donnees reelles et lesquelles resteraient
+  de simples demonstrations methodologiques explicitement simulees.
+
+La presente fiche ne vaut donc ni validation des donnees ni engagement a appliquer
+toutes les methodes candidates.
