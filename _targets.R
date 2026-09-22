@@ -17,5 +17,9 @@ list(
   tar_target(
     import_results,
     run_all_imports(source_manifest)
+  ),
+  tar_target(
+    quality_report,
+    run_quality_audit(source_manifest, import_results)
   )
 )

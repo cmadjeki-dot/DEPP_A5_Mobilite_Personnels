@@ -1,0 +1,135 @@
+---
+title: "Audit et contrôle qualité"
+subtitle: "Diagnostic avant nettoyage — DEPP A5 Mobilité des personnels"
+author: "Projet DEPP A5 Mobilité des personnels"
+date: last-modified
+lang: fr
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: chargement-diagnostic
+quality_report <- targets::tar_read(quality_report, store = here::here("_targets"))
+```
+
+::: {.callout-important}
+## Périmètre strict
+
+Ce document établit le diagnostic qualité **avant tout nettoyage**. Les sept
+fichiers bruts sont lus sans modification. Une anomalie déclenche une action
+d'expertise ; elle n'est jamais corrigée, imputée, tronquée ou dédoublonnée
+silencieusement.
+:::
+
+# Objectif et intérêt métier
+
+L'objectif est de déterminer si les données publiques importées sont aptes aux
+traitements statistiques ultérieurs, tout en séparant trois situations :
+
+- une conformité vérifiée (`OK`) ;
+- une particularité à documenter (`INFORMATION`) ;
+- une anomalie nécessitant une décision explicite (`ALERTE`) ;
+- un contrôle impossible avec la profondeur disponible (`NON ÉVALUABLE`).
+
+Cette distinction évite de confondre secret statistique, absence structurelle,
+erreur de données et absence de recul temporel.
+
+# Dispositif de contrôle
+
+`R/quality.R` applique des règles déclarées par source sur les dimensions, les
+clés candidates, les doublons, les types conservatoires, les valeurs manquantes,
+les modalités, les plages numériques, les périodes, les codes géographiques,
+les nomenclatures, les ruptures de série et les relations entre variables.
+
+Les contrôles tiennent compte des conventions observées et documentées dans les
+fichiers : départements corses `2A`, `2B`, `02A`, `02B`, pourcentages exprimés
+sur 100, et marqueurs `ss`/`NS`. Leur reconnaissance ne modifie pas les valeurs.
+
+# Synthèse
+
+```{r}
+#| label: synthese-statuts
+summary_status <- as.data.frame(table(quality_report$STATUT), stringsAsFactors = FALSE)
+names(summary_status) <- c("STATUT", "NOMBRE_DE_CONTROLES")
+knitr::kable(summary_status, align = c("l", "r"))
+```
+
+Le diagnostic produit **99 contrôles** : 92 conformes, 2 informations, 4 non
+évaluables et 1 alerte. Aucun statut `ERREUR` n'est observé.
+
+# Points nécessitant une attention
+
+```{r}
+#| label: points-attention
+attention <- quality_report[quality_report$STATUT != "OK",
+  c("SOURCE", "INDICATEUR", "REGLE", "RESULTAT", "SEUIL", "STATUT", "ACTION")]
+knitr::kable(attention, align = "l")
+```
+
+## Alerte sur l'annuaire de l'éducation
+
+La clé candidate `identifiant_de_l_etablissement` présente **82 occurrences
+excédentaires**, correspondant à **75 UAI répétés** ; le maximum est de trois
+occurrences pour une même UAI. Aucune ligne complète n'est strictement identique.
+La granularité doit donc être expertisée avant toute règle de dédoublonnage :
+état, rattachement, mise à jour ou autre dimension de l'annuaire peuvent expliquer
+ces répétitions. Aucune ligne n'a été supprimée.
+
+## Secret et non-significativité
+
+- `personnels_1d` contient 161 904 marqueurs `ss` dans les mesures détaillées ;
+- `ips_ecoles` contient 6 926 marqueurs `NS` pour l'IPS.
+
+Ces codes sont conservés comme indisponibilités documentées. Ils ne sont ni
+convertis en zéro ni imputés à cette étape.
+
+## Limite temporelle
+
+Les ruptures de série sont non évaluables pour `personnels_2d`, `mouvement_1d`,
+`ips_colleges` et `ips_lycees`, car une seule période est publiée dans les
+fichiers acquis. Pour `personnels_1d` et `ips_ecoles`, les variations d'effectifs
+entre millésimes restent sous le seuil d'alerte de 20 %.
+
+# Matrice complète
+
+La matrice ci-dessous constitue le livrable demandé. Les colonnes `SOURCE` et
+`CATEGORIE` ajoutent la traçabilité ; les six colonnes centrales suivent le
+format **INDICATEUR | RÈGLE | RÉSULTAT | SEUIL | STATUT | ACTION**.
+
+```{r}
+#| label: matrice-complete
+knitr::kable(quality_report, align = "l")
+```
+
+# Livrables et reproductibilité
+
+- code : `R/quality.R` ;
+- cible automatisée : `quality_report` dans `_targets.R` ;
+- diagnostic tabulaire local : `outputs/tables/diagnostic_qualite.csv` ;
+- tests unitaires : `tests/testthat/test-quality.R` ;
+- présent document et son rendu HTML.
+
+Commande de reproduction :
+
+```{r}
+#| eval: false
+targets::tar_make(names = quality_report)
+quarto::quarto_render("notebooks/02_controle_qualite.qmd")
+```
+
+::: {.callout-warning}
+## Décision avant l'étape 5
+
+Le nettoyage devra définir explicitement le traitement des UAI multiples de
+l'annuaire et des marqueurs `ss`/`NS`. Le présent audit ne préjuge pas de cette
+décision et ne commence aucune harmonisation.
+:::
