@@ -1,0 +1,365 @@
+---
+title: "Recherche et audit des donnees"
+subtitle: "DEPP A5 — Mobilite des personnels enseignants"
+author: "Projet DEPP A5 Mobilite des personnels"
+date: last-modified
+lang: fr
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    embed-resources: true
+execute:
+  enabled: false
+---
+
+::: {.callout-important}
+## Portee de l'audit
+
+Audit documentaire realise le **22 septembre 2026** sur les pages, catalogues et
+API officiels de la DEPP, du ministere charge de l'Education nationale, de
+`data.education.gouv.fr`, de `data.gouv.fr`, de l'Insee et du catalogue d'acces
+securise aux donnees. Cette etape ne telecharge pas les fichiers de production et
+ne realise aucune analyse statistique.
+
+Une variable est consideree comme disponible uniquement lorsqu'elle apparait
+dans un schema, une documentation ou un fichier officiellement diffuse. La
+mention « panel » dans le nom d'une source administrative ne signifie pas que
+les microdonnees individuelles correspondantes sont ouvertes.
+:::
+
+## Conclusion executive
+
+1. **Aucun veritable panel individuel ouvert des personnels enseignants n'a ete
+   identifie.** Aucun jeu public audite ne diffuse un identifiant pseudonymise de
+   personnel stable entre annees.
+2. La DEPP dispose bien d'un **Panel des personnels issu de la Base statistique
+   des agents (BSA)**. La documentation officielle le decrit comme exhaustif,
+   annuel et longitudinal ; le catalogue d'acces securise indique une couverture
+   a partir de 2008. Ce panel est accessible sur projet via le **CASD**, pas en
+   telechargement open data.
+3. Les donnees ouvertes les plus utiles sont des **agregats
+   etablissement-annee** : deux millesimes (2024 et 2025) dans le premier degre,
+   un millesime (2024) dans le second degre au jour de l'audit. Elles decrivent
+   la composition des personnels en ETP, mais pas les trajectoires individuelles.
+4. Le jeu ouvert relatif au mouvement interdepartemental du premier degre ne
+   contient que **101 lignes departementales pour 2019** et trois ratios. Il ne
+   contient ni demandes individuelles, ni origines-destinations, ni historique.
+5. Les publications DEPP (Panorama et Note d'Information 25.56) diffusent des
+   tableaux agreges directement pertinents pour cadrer et comparer les resultats,
+   mais pas les microdonnees ayant servi aux modeles.
+6. Un demonstrateur honnete peut donc mener des analyses reelles descriptives,
+   territoriales et des variations d'agregats. Les modeles individuels de
+   trajectoire, de survie, d'explication et de prediction exigent les donnees
+   internes/securisees, ou doivent rester des demonstrations simulees clairement
+   separees.
+
+## Verification du suivi longitudinal individuel
+
+### Ce qui existe a la DEPP
+
+Le document de travail DEPP *Le temps de travail des enseignants* decrit la BSA
+comme un systeme d'information unifie et precise qu'un panel exhaustif en est
+issu pour etudier les trajectoires professionnelles. Il restitue la situation
+des personnels au 30 novembre de chaque annee, permet de suivre leur mobilite et
+leur anciennete sur les postes.
+
+- Documentation officielle :
+  [DEPP, Le temps de travail des enseignants, 2025](https://www.education.gouv.fr/sites/default/files/document/le-temps-de-travail-des-enseignants-474745.pdf)
+- Catalogue d'acces :
+  [BSA Panel dans le portail CASD](https://cdap.casd.eu/referentiel)
+
+Le catalogue CASD indique que le BSA Panel contient les informations
+socio-demographiques, statutaires et d'affectation des personnels geres, avec
+une observation au 30 novembre de chaque annee **a partir de 2008**.
+
+### Ce qui est publiquement ouvert
+
+Les extractions ouvertes « personnels dans les etablissements » proviennent du
+panel BSA, mais elles sont agregees en ETP par etablissement et annee. Leur schema
+ne contient aucun identifiant individuel. Le code UAI identifie
+l'**etablissement**, pas l'enseignant.
+
+| Critere d'un vrai panel individuel | Jeux ouverts audites | BSA Panel CASD |
+|---|---|---|
+| Une ligne personne-periode | Non | Oui, d'apres la documentation |
+| Identifiant personnel stable | Non publie | Present sous forme securisee necessaire au suivi |
+| Positions successives | Non | Oui |
+| Origine et destination individuelles | Non | Affectations successives exploitables |
+| Duree avant mobilite | Non calculable individuellement | Calculable sous conditions d'acces et de qualite |
+| Acces libre | Oui pour les agregats | Non, acces securise sur projet |
+
+**Decision :** le projet ouvert ne presentera jamais les donnees
+etablissement-annee comme un panel d'enseignants. Il pourra construire un panel
+d'etablissements, ce qui repond a une autre unite statistique et a d'autres
+questions.
+
+## Audit detaille des sources
+
+### S1 — Personnels dans les etablissements du premier degre
+
+| Champ | Valeur verifiee |
+|---|---|
+| **Organisme** | DEPP — ministere charge de l'Education nationale |
+| **Dataset** | Les personnels dans les etablissements du premier degre (`fr-en-indicateurs_personnels_etablissements1d`) |
+| **URL officielle** | [data.education.gouv.fr](https://data.education.gouv.fr/explore/dataset/fr-en-indicateurs_personnels_etablissements1d/) |
+| **Periode observee** | Rentrees 2024 et 2025 dans l'API au 22/09/2026 |
+| **Population** | Personnels enseignants affectes dans les etablissements du premier degre de l'Education nationale ; secteurs public et prive presents dans le champ diffuse |
+| **Unite statistique** | Etablissement scolaire × annee de rentree |
+| **Granularite** | Ecole (code UAI), avec codes departement, academie et region |
+| **Variables verifiees** | Annee, secteur, UAI, nom, codes territoriaux, ETP enseignants total et femmes, ETP par trois classes d'age, ETP par quatre classes d'anciennete dans l'etablissement, geolocalisation |
+| **Format** | API JSON ; exports du portail, notamment CSV |
+| **Actualisation** | Jeu modifie le 24/06/2026 ; deux millesimes disponibles lors de l'audit |
+| **Appariement** | UAI + annee avec Annuaire, effectifs d'eleves, IPS, education prioritaire ; codes departement/region avec sources territoriales |
+| **Limites** | Agregats en ETP, pas d'identifiant enseignant ; valeurs de caracteristiques masquees par `ss` sous 5 ETP ; deux annees seulement ; impossible de distinguer mobilite, recrutement, depart, variation de quotite ou changement de champ |
+
+**Controle API realise :** 94 584 lignes, dont 47 507 pour 2024 et 47 077
+pour 2025 au jour de l'audit. Ces volumes sont datés et pourront evoluer.
+
+### S2 — Personnels dans les etablissements du second degre
+
+| Champ | Valeur verifiee |
+|---|---|
+| **Organisme** | DEPP — ministere charge de l'Education nationale |
+| **Dataset** | Les personnels dans les etablissements du second degre (`fr-en-indicateurs_personnels_etablissements2d`) |
+| **URL officielle** | [data.education.gouv.fr](https://data.education.gouv.fr/explore/dataset/fr-en-indicateurs_personnels_etablissements2d/) |
+| **Periode observee** | Rentree 2024 uniquement dans l'API au 22/09/2026 |
+| **Population** | Personnels affectes dans les etablissements du second degre ; dans le prive sous contrat, seuls les ETP enseignants sont diffuses |
+| **Unite statistique** | Etablissement scolaire × annee de rentree |
+| **Granularite** | College, lycee ou autre etablissement du second degre (UAI) |
+| **Variables verifiees** | Annee, secteur, nature d'etablissement, UAI, territoires, ETP total, vie scolaire, enseignants, femmes, corps (agreges, certifies/PEPS, PLP, autres titulaires, non-titulaires), classes d'age, anciennete dans l'etablissement, proportions et geolocalisation |
+| **Format** | API JSON ; exports du portail, notamment CSV |
+| **Actualisation** | Jeu modifie le 23/07/2026 ; un millesime disponible lors de l'audit |
+| **Appariement** | UAI + annee avec Annuaire, IPS colleges/lycees, effectifs d'eleves et education prioritaire ; codes geographiques avec Insee |
+| **Limites** | 10 697 lignes mais un seul millesime ; agregats ETP ; secret statistique sous 5 ETP ; couverture asymetrique public/prive ; aucune mobilite individuelle ni variation temporelle estimable a ce stade |
+
+### S3 — Mouvement interdepartemental du premier degre public
+
+| Champ | Valeur verifiee |
+|---|---|
+| **Organisme** | DGRH — ministere charge de l'Education nationale |
+| **Dataset** | Donnees relatives aux cartes du mouvement interdepartemental du premier degre public (`fr-en-donnees-cartes-mouvement-interdepartemental-premier-degre-public`) |
+| **URL officielle** | [data.education.gouv.fr](https://data.education.gouv.fr/explore/dataset/fr-en-donnees-cartes-mouvement-interdepartemental-premier-degre-public/) |
+| **Periode observee** | 2019 uniquement dans l'API au 22/09/2026 |
+| **Population** | Enseignants titulaires du premier degre public participant ou susceptibles de participer au mouvement interdepartemental, selon l'indicateur |
+| **Unite statistique** | Departement × annee |
+| **Granularite** | Departement, 101 lignes |
+| **Variables verifiees** | Annee, code et libelle departement, ratio demandes d'entree en premier voeu / demandes de sortie, ratio sorties realisees / sorties demandees, ratio entrees / sorties, geometrie et centroide |
+| **Format** | API JSON ; exports tabulaires et geographiques du portail |
+| **Actualisation** | Jeu modifie le 02/02/2026, mais donnees toujours limitees a 2019 lors de l'audit |
+| **Appariement** | Code departement avec contexte Insee ; comparaison descriptive avec effectifs enseignants agreges |
+| **Limites** | Ratios sans effectifs bruts dans le schema ; une seule annee ; aucune matrice origine-destination ; aucune caracteristique individuelle ; le champ porte sur un mouvement administratif specifique et non sur toute mobilite |
+
+### S4 — Note d'Information 25.56 sur les demandes de mobilite
+
+| Champ | Valeur verifiee |
+|---|---|
+| **Organisme** | DEPP — ministere charge de l'Education nationale |
+| **Dataset / publication** | *Quels enseignants demandent une mobilite ?*, Note d'Information n° 25.56, avec donnees associees XLSX |
+| **URL officielle** | [education.gouv.fr/depp](https://www.education.gouv.fr/depp/quels-enseignants-demandent-une-mobilite-452868) |
+| **Periode** | Demandes declarees en 2023 et changement d'affectation observe a la rentree suivante, selon la publication |
+| **Population** | Enseignants titulaires d'un poste definitif repondant au Barometre du bien-etre au travail des personnels, selon les champs des tableaux |
+| **Unite statistique** | Tableaux et resultats agreges issus d'une enquete individuelle appariee ; microdonnees non jointes |
+| **Granularite** | Modalites de caracteristiques individuelles, professionnelles et de satisfaction dans le XLSX public |
+| **Variables diffusees** | Demande de changement, changement effectif, sexe, enfant a charge, anciennete, territoire, secteur, degre et dimensions de satisfaction selon les tableaux publies |
+| **Format** | PDF et XLSX (57,49 Ko annonce sur la page) |
+| **Actualisation** | Publication ponctuelle du 09/10/2025 |
+| **Appariement** | Sert de reference et de benchmark ; pas d'appariement ligne a ligne avec les jeux ouverts |
+| **Limites** | Donnees associees agregees, pas les reponses individuelles ni les identifiants d'appariement ; echantillon d'enquete et non population exhaustive ; demande de mobilite distincte de toute mobilite observee |
+
+### S5 — Panorama statistique des personnels 2024-2025
+
+| Champ | Valeur verifiee |
+|---|---|
+| **Organisme** | DEPP — ministere charge de l'Education nationale |
+| **Dataset / publication** | Panorama statistique des personnels de l'enseignement scolaire 2024-2025, notamment chapitre 6 « Carriere » |
+| **URL officielle** | [education.gouv.fr/depp](https://www.education.gouv.fr/depp/panorama-statistique-des-personnels-de-l-enseignement-scolaire-2024-2025-452859) |
+| **Periode** | Principalement annee scolaire 2024-2025 et situation 2024 ; periodes variables selon les tableaux |
+| **Population** | Personnels de l'enseignement scolaire ; champs detailles tableau par tableau |
+| **Unite statistique** | Tableaux statistiques agreges |
+| **Granularite** | Nationale et ventilations par degre, secteur, statut, age, sexe, territoire ou categorie selon les fiches |
+| **Variables diffusees** | Effectifs, caracteristiques, missions, lieux, carriere et mobilite, concours, remuneration, formation, conges, retraites, departs volontaires, climat |
+| **Format** | PDF complet et fichiers XLSX separes pour 13 chapitres |
+| **Actualisation** | Annuelle ; edition publiee le 03/10/2025, edition suivante en diffusion progressive en 2026 |
+| **Appariement** | Reference de cadrage et de validation externe des ordres de grandeur ; series reconstructibles avec prudence a partir des editions successives |
+| **Limites** | Tableaux agreges, definitions et champs variables ; microdonnees BSA non diffusees ; une succession d'editions n'est pas automatiquement une serie homogene |
+
+### S6 — Annuaire de l'education
+
+| Champ | Valeur verifiee |
+|---|---|
+| **Organisme** | Ministere charge de l'Education nationale, sources ONISEP et RAMSESE |
+| **Dataset** | Annuaire de l'education (`fr-en-annuaire-education`) |
+| **URL officielle** | [data.education.gouv.fr](https://data.education.gouv.fr/explore/dataset/fr-en-annuaire-education/) |
+| **Periode** | Etat courant des etablissements ouverts ; dates d'ouverture et de mise a jour presentes |
+| **Population** | Etablissements publics et prives en France : premier et second degres, medico-social, CIO et etablissements administratifs |
+| **Unite statistique** | Etablissement courant |
+| **Granularite** | UAI / adresse / commune, plus de 66 000 etablissements selon la fiche API data.gouv.fr |
+| **Variables verifiees** | UAI, nom, type, statut, adresse, code commune, departement, academie, region, voies, options, restauration, hebergement, ULIS, education prioritaire, SIRET, effectif d'eleves, dates, etat, coordonnees |
+| **Format** | API, CSV, JSON et archive ZIP proposes par la diffusion officielle |
+| **Actualisation** | Continue ou tres frequente ; page data.gouv.fr mise a jour le 21/09/2026 lors de l'audit |
+| **Appariement** | UAI avec S1/S2 et autres jeux Education ; code commune avec Insee |
+| **Limites** | Photographie courante, pas un historique annuel complet ; fermetures et changements d'UAI a traiter ; variables de contact inutiles a l'analyse et a minimiser |
+
+Fiche de service officielle :
+[API Annuaire sur data.gouv.fr](https://www.data.gouv.fr/dataservices/annuaire-de-leducation-nationale).
+
+### S7 — Indices de position sociale des etablissements
+
+| Champ | Valeur verifiee |
+|---|---|
+| **Organisme** | DEPP — ministere charge de l'Education nationale |
+| **Datasets** | IPS des ecoles, colleges et lycees ; jeux historiques et jeux fondes sur la table IPS revisee |
+| **URLs officielles** | [Colleges a partir de 2023](https://data.education.gouv.fr/explore/dataset/fr-en-ips-colleges-ap2023/) ; [Lycees a partir de 2023](https://data.education.gouv.fr/explore/dataset/fr-en-ips-lycees-ap2023/) ; [catalogue des donnees Education](https://www.data.gouv.fr/pages/donnees_education) |
+| **Periode** | Annuelle ; series et identifiants de jeux differents avant/apres la revision de la table IPS |
+| **Population** | Eleves des etablissements sous tutelle de l'Education nationale, publics et prives sous contrat, selon le degre et le champ de chaque jeu |
+| **Unite statistique** | Etablissement × annee scolaire |
+| **Granularite** | UAI |
+| **Variables diffusees** | IPS moyen ; ecart-type pour certains degres/periodes ; effectifs et declinaisons de voie pour les lycees |
+| **Format** | API JSON et exports tabulaires du portail |
+| **Actualisation** | Annuelle |
+| **Appariement** | UAI + annee avec S1/S2 pour caracteriser le contexte social de l'etablissement |
+| **Limites** | Contexte des eleves, pas caracteristique individuelle des enseignants ; rupture methodologique de table IPS ; valeurs non renseignees sous certains seuils ; couverture differente selon degre et millesime |
+
+### S8 — Donnees territoriales Insee
+
+| Champ | Valeur verifiee |
+|---|---|
+| **Organisme** | Insee |
+| **Dataset** | Base du dossier complet ; alternative parcimonieuse : Base du comparateur de territoires |
+| **URLs officielles** | [Base du dossier complet](https://www.insee.fr/fr/statistiques/5359146) ; [Base du comparateur de territoires](https://www.insee.fr/fr/statistiques/2521169) |
+| **Periode** | Plusieurs millesimes d'indicateurs ; diffusion septembre 2026 auditee |
+| **Population** | Population, menages, actifs, emplois et etablissements selon l'indicateur |
+| **Unite statistique** | Zone geographique × indicateur × millesime dans la nouvelle structure |
+| **Granularite** | Commune et niveaux supracommunaux : departement, region, EPCI, aire d'attraction, bassin de vie, zone d'emploi, etc. |
+| **Variables diffusees** | Population, age, diplomes, activite, emploi, chomage, revenus, pauvrete, logements, etablissements et autres indicateurs territoriaux |
+| **Format** | CSV et Parquet pour la diffusion 2026 ; documentation et dictionnaire associes |
+| **Actualisation** | Annuelle ou selon la source constitutive de chaque indicateur |
+| **Appariement** | Code commune/departement/region, avec harmonisation au Code officiel geographique du millesime |
+| **Limites** | Contexte territorial agrege ; decalage temporel des millesimes ; changements geographiques ; secret statistique pour certains indicateurs ; risque d'erreur ecologique |
+
+### S9 — BSA Panel en acces securise
+
+| Champ | Valeur verifiee |
+|---|---|
+| **Organisme** | DEPP ; diffusion securisee via CASD |
+| **Dataset** | Donnees socio-demographiques et statutaires du personnel de l'Education nationale — BSA Panel |
+| **URL officielle** | [Catalogue du portail d'acces aux donnees](https://cdap.casd.eu/referentiel) |
+| **Periode** | Personnels geres au 30 novembre de chaque annee a partir de 2008, selon le catalogue |
+| **Population** | Personnels geres par le ministere de l'Education nationale |
+| **Unite statistique** | Personnel × annee / situation au 30 novembre |
+| **Granularite** | Individuelle, longitudinale et securisee |
+| **Variables documentees** | Informations socio-demographiques, statutaires et d'affectation ; la documentation DEPP mentionne corps, missions, type d'etablissement, anciennete et suivi de mobilite |
+| **Format** | Non documente comme telechargement ouvert ; environnement securise CASD |
+| **Actualisation** | Annuelle |
+| **Appariement** | Concu sur un champ et des nomenclatures harmonises facilitant les appariements ; toute operation depend des autorisations et protocoles securises |
+| **Limites** | **Non ouvert** ; acces sur projet, habilitation, convention et environnement CASD ; aucune copie ne doit etre supposee disponible dans ce demonstrateur public |
+
+## Matrice questions — donnees — faisabilite
+
+| QUESTION | VARIABLE NECESSAIRE | SOURCE | DISPONIBLE ? | GRANULARITE | TRANSFORMATION | LIMITE |
+|---|---|---|---|---|---|---|
+| Decrire la composition des personnels par ecole en 2024-2025 | ETP, sexe, classe d'age, anciennete dans l'etablissement | S1 | **Oui** | Ecole × annee | Recoder `ss`, controler sommes et denominateurs, calculer proportions | Deux ans ; ETP et non personnes ; secret sous 5 ETP |
+| Mesurer la variation de composition des ecoles entre 2024 et 2025 | Memes variables et UAI sur deux annees | S1 | **Oui, comme variation agregee** | Ecole × annee | Panel d'etablissements, differences et taux de variation | Ne mesure pas une mobilite d'enseignants |
+| Decrire la composition des personnels du second degre | ETP par corps, statut, sexe, age, anciennete | S2 | **Oui pour 2024** | Etablissement × annee | Controles, proportions, agregation territoriale | Un seul millesime ; public/prive non symetriques |
+| Comparer les ratios du mouvement interdepartemental | Ratios de demandes, sorties realisees et entrees/sorties | S3 | **Oui pour 2019** | Departement | Cartographie et jointure de contexte | Pas d'effectifs bruts ni de serie temporelle |
+| Caracteriser l'environnement des etablissements | REP/REP+, type, effectifs, IPS, contexte communal | S6, S7, S8 | **Partiellement** | UAI ou commune × annee | Harmoniser UAI, annees et codes geographiques | Ruptures, millesimes decales, erreur ecologique |
+| Reproduire les tableaux publics de mobilite DEPP | Taux publies par degre, age, statut ou territoire | S4, S5 | **Oui, tableaux seulement** | Agregats publies | Import XLSX, normalisation des libelles, comparaison | Pas de recalcul depuis les microdonnees |
+| Suivre chaque enseignant d'un poste a l'autre | Identifiant stable, affectations successives, dates | S9 | **Non en open data** | Personnel × annee | Panel individuel, transitions | Acces CASD/interne requis |
+| Construire une matrice origine-destination individuelle | UAI/departement/academie en `t` et `t+1` | S9 | **Non en open data** | Personnel × transition | Ordonner les observations et coder les transitions | Les ratios S3 ne remplacent pas les flux individuels |
+| Estimer la duree avant premiere mobilite | Date d'entree, date de mobilite, censure | S9 | **Non en open data** | Personnel × episode | Construction d'episodes et censures | Acces interne ; definitions de debut et fin a expertiser |
+| Expliquer la probabilite individuelle de mobilite | Cible individuelle et covariables personnelles/professionnelles | S9, eventuels appariements | **Non en open data** | Personnel × annee | Modele multivarie et erreurs groupees | Variables omises ; association non causale |
+| Evaluer l'effet causal d'une politique sur la mobilite | Exposition, calendrier, groupe de comparaison, outcome individuel | S9 + donnees de politique | **Non etabli** | Personnel/territoire × temps | Strategie d'identification a definir | Aucune identification causale garantie par les sources reperees |
+| Predire une mobilite en `t+1` | Cible future, historique et predicteurs connus en `t` | S9 | **Non en open data** | Personnel × annee | Separation temporelle, apprentissage et calibration | Interdit de presenter une simulation comme performance reelle |
+| Auditer l'equite des predictions individuelles | Predictions hors echantillon, cible et groupes | S9 | **Non en open data** | Personnel | Metriques stratifiees et incertitude | Necessite une prediction reelle prealablement validee |
+
+## A. Analyses realisables avec des donnees reelles ouvertes
+
+### A1 — Faisables directement
+
+- profil des ETP enseignants du premier degre en 2024 et 2025 par ecole,
+  secteur et territoire ;
+- profil des ETP et de la composition par corps du second degre en 2024 ;
+- mesure des variations **agregées d'etablissement** entre 2024 et 2025 dans le
+  premier degre, sans les appeler mobilites individuelles ;
+- cartographie 2019 des trois ratios du mouvement interdepartemental du premier
+  degre ;
+- description du contexte des etablissements par appariement UAI avec Annuaire,
+  IPS et variables scolaires compatibles ;
+- enrichissement territorial par codes Insee, sous controle des millesimes ;
+- import et reproduction documentee des tableaux publics de la Note 25.56 et du
+  Panorama ;
+- comparaison des ordres de grandeur ouverts avec les publications DEPP.
+
+### A2 — Faisables sous reserves fortes
+
+- associations au niveau etablissement entre composition des personnels et
+  contexte social ou territorial ;
+- typologie d'etablissements fondee sur des variables agregees ;
+- modeles de variation d'ETP entre 2024 et 2025 dans le premier degre.
+
+Ces resultats portent sur des etablissements, non sur le comportement des
+enseignants. Toute interpretation individuelle constituerait une erreur
+ecologique.
+
+## B. Analyses necessitant les donnees internes ou securisees DEPP
+
+- panel enseignant-annee avec identifiant stable ;
+- mobilite entre etablissements, departements ou academies au niveau individuel ;
+- distinction entre mutation, premiere affectation, changement de quotite,
+  disponibilite, retraite, depart volontaire et perte de suivi ;
+- sequences de carriere et mobilites repetees ;
+- analyse de survie ou de duree avant mobilite ;
+- modeles individuels explicatifs conditionnels ;
+- prediction reelle d'une mobilite future et audit de ses erreurs ;
+- analyses fines des demandes, voeux, baremes et resultats des mouvements ;
+- appariements individuels avec enquetes de satisfaction ou autres sources.
+
+La source naturelle est le BSA Panel via un cadre DEPP/CASD autorise. Le present
+depot public ne contiendra jamais ces microdonnees.
+
+## C. Demonstrations eventuellement realisables avec donnees simulees
+
+Uniquement pour montrer la maitrise methodologique, dans un espace et un rendu
+explicitement etiquetes **SIMULATION — AUCUN RESULTAT REEL** :
+
+- construction d'un panel enseignant-annee fictif ;
+- matrices de transition et visualisation de sequences ;
+- donnees de survie avec censures et modele de Cox ;
+- regression logistique avec effets fixes ou structure multiniveau ;
+- validation temporelle d'un modele predictif ;
+- calibration, importance des variables et explications locales ;
+- audit de performance par groupes.
+
+Les distributions simulees ne seront pas calibrees en inventant des parametres
+presentes comme des faits. Quand une valeur publique est utilisee pour un scenario,
+sa source et son role pedagogique seront indiques.
+
+## Sources ecartees comme base principale
+
+- Les Notes d'Information anciennes sur la mobilite (premier degre 2014, second
+  degre 2012) sont utiles historiquement, mais leurs tableaux ne constituent pas
+  un fichier longitudinal actuel.
+- Le recensement et les fichiers detail Insee permettent d'identifier des
+  professions enseignantes et des contextes d'emploi, mais pas de suivre les
+  affectations administratives d'un meme enseignant d'une annee a l'autre dans
+  l'Education nationale.
+- Les concours de recrutement decrivent l'entree potentielle dans les corps, pas
+  les mobilites des agents en poste.
+- L'Annuaire est un referentiel d'etablissements, pas une base de personnels.
+
+## Decision pour l'ETAPE 3
+
+L'acquisition future devra prioriser, sans la demarrer dans cette etape :
+
+1. S1 — personnels du premier degre, millesimes 2024-2025 ;
+2. S2 — personnels du second degre, millesime 2024 ;
+3. S3 — ratios departementaux du mouvement 2019 ;
+4. S6 — Annuaire comme referentiel UAI courant ;
+5. S7 — IPS compatibles avec les millesimes et degres ;
+6. S8 — un sous-ensemble parcimonieux du contexte territorial Insee ;
+7. S4/S5 — tableaux XLSX comme references et benchmarks.
+
+Avant tout telechargement, l'ETAPE 3 devra enregistrer URL d'export, date de
+collecte, empreinte du fichier, taille, licence, encodage et schema attendu.
