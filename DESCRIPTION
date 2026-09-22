@@ -7,6 +7,7 @@ Description: Demonstrateur reproductible de statistique publique sur les
 License: MIT + file LICENSE
 Encoding: UTF-8
 Imports:
+    broom,
     cli,
     data.table,
     digest,

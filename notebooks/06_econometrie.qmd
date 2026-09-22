@@ -1,0 +1,112 @@
+---
+title: "Économétrie — associations au niveau établissement"
+subtitle: "Étape 11 — DEPP A5 Mobilité des personnels"
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: initialisation
+library(dplyr)
+library(ggplot2)
+library(gt)
+library(targets)
+
+results <- tar_read(econometric_results, store = here::here("_targets"))
+```
+
+## Cadre scientifique et estimand
+
+La granularité publique disponible ne permet pas une économétrie de la mobilité individuelle. L'issue modélisée est strictement la **disparition d'une UAI du fichier entre 2024 et 2025**. Elle ne constitue ni une fermeture attestée, ni une sortie, ni une mobilité de personnel.
+
+```{r}
+#| label: cadre
+results$framework |>
+  gt() |>
+  tab_header(title = "Formalisation du modèle")
+```
+
+L'estimation principale est une régression logistique :
+
+\[
+\operatorname{logit}\{P(Y_i=1\mid X_i)\}=
+\beta_0+\beta_1\log(1+ETP_i)+\beta_2Anc_{<2,i}^{10pp}+\beta_3Age_{50+,i}^{10pp}
++\beta_4Femmes_i^{10pp}+\delta Secteur_i.
+\]
+
+La population d'estimation contient `r format(results$n, big.mark = " ")` établissements observés en 2024 avec covariables complètes. Les parts sont des compositions d'ETP agrégées au niveau établissement; leurs coefficients et odds ratios correspondent à une augmentation de **10 points de pourcentage**.
+
+## Coefficients et odds ratios
+
+```{r}
+#| label: coefficients
+results$coefficients |>
+  select(term, estimate, std.error, statistic, p.value, odds_ratio, or_ic95_basse, or_ic95_haute) |>
+  mutate(across(where(is.numeric), ~ round(.x, 4))) |>
+  gt() |>
+  tab_header(title = "Régression logistique principale",
+             subtitle = "Coefficients, odds ratios et intervalles de confiance à 95 %")
+```
+
+Un odds ratio supérieur à 1 indique une association avec des odds plus élevées d'absence du fichier en 2025, **toutes les autres variables incluses dans le modèle maintenues constantes**. Cette formule décrit un ajustement statistique conditionnel; elle ne signifie pas que les groupes sont rendus comparables par expérimentation et ne démontre aucun effet causal.
+
+## Multicolinéarité
+
+```{r}
+#| label: vif
+results$vif |>
+  mutate(vif = round(vif, 3)) |>
+  gt() |>
+  tab_header(title = "VIF des covariables numériques", subtitle = "Seuil d'alerte documentaire : 5")
+```
+
+Le nombre de condition de la matrice complète est présenté avec les autres diagnostics. Le VIF numérique ne couvre pas à lui seul le facteur sectoriel.
+
+## Tests et diagnostics
+
+```{r}
+#| label: diagnostics
+results$diagnostics |>
+  mutate(RESULTAT = signif(RESULTAT, 4)) |>
+  gt() |>
+  tab_header(title = "Diagnostics du modèle")
+```
+
+```{r}
+#| label: calibration
+results$calibration |>
+  mutate(across(c(taux_observe, probabilite_predite), ~ round(.x, 4))) |>
+  gt() |>
+  tab_header(title = "Calibration apparente par décile de risque prédit")
+```
+
+Ces diagnostics sont internes à l'échantillon. Ils ne constituent pas une validation externe et ne corrigent pas une éventuelle confusion non observée.
+
+## Interaction et robustesse
+
+L'interaction entre ancienneté courte et secteur est évaluée par un test du rapport de vraisemblance. Une spécification probit sert de contrôle de sensibilité du lien. Elle ne change ni la population ni la nature associative de l'analyse. Le statut d'éducation prioritaire, issu d'un snapshot 2026, est exclu afin d'éviter une fuite temporelle vers l'issue 2025. `fixest` et `plm` ne sont pas mobilisés : deux millésimes et une issue de présence unique ne permettent pas d'identifier un modèle de panel individuel pertinent.
+
+```{r}
+#| label: robustesse
+results$robustness |>
+  mutate(across(where(is.numeric), ~ round(.x, 4))) |>
+  gt() |>
+  tab_header(title = "Robustesse de l'association avec l'ancienneté courte")
+```
+
+## Limites d'interprétation
+
+```{r}
+#| label: limites
+results$limits |>
+  gt() |>
+  tab_header(title = "Limites et décisions méthodologiques")
+```
+
+L'analyse estime des associations conditionnelles au niveau des établissements. Elle ne permet aucune conclusion causale sur l'effet du territoire, de l'éducation prioritaire, de l'âge ou de l'ancienneté sur une mobilité professionnelle individuelle.
