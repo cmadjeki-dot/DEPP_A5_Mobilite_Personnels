@@ -1,0 +1,223 @@
+---
+title: "Analyse statistique descriptive"
+subtitle: "Effectifs, profils, établissements, territoires et ratios de mouvement"
+author: "Projet DEPP A5 Mobilité des personnels"
+date: last-modified
+lang: fr
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: chargement
+descriptive <- targets::tar_read(descriptive_results, store = here::here("_targets"))
+tables <- descriptive$tables
+figures <- descriptive$figures
+```
+
+::: {.callout-important}
+## Portée
+
+Cette étape est exclusivement descriptive. Elle décrit les agrégats publiés et
+n'établit aucun effet causal. Les différences entre degrés, territoires ou
+catégories peuvent refléter la composition, le champ, la couverture, les
+nomenclatures ou d'autres facteurs non observés.
+:::
+
+# Concepts statistiques
+
+| Concept | Usage dans ce document |
+|---|---|
+| **Effectif** | somme d'ETP ou nombre d'établissements observés |
+| **Proportion** | part d'un effectif dans un total explicitement défini |
+| **Taux** | rapport rapporté à une population exposée ; aucun taux individuel de mobilité n'est disponible |
+| **Variation** | différence ou évolution relative entre deux millésimes comparables |
+| **Écart** | différence descriptive entre groupes, sans interprétation causale |
+
+# Effectifs et évolutions
+
+```{r}
+tables$effectifs |>
+  gt::gt() |>
+  gt::tab_header(title = "Effectifs d'établissements et d'enseignants") |>
+  gt::fmt_number(columns = c(etablissements, etp_enseignants, variation_etp), decimals = 1,
+                 sep_mark = " ", dec_mark = ",") |>
+  gt::fmt_percent(columns = taux_variation_etp, decimals = 2) |>
+  gt::cols_label(annee = "Année", degre = "Degré", etablissements = "Établissements",
+                 etp_enseignants = "ETP enseignants", variation_etp = "Variation en ETP",
+                 taux_variation_etp = "Variation relative") |>
+  gt::tab_source_note("Source : DEPP, indicateurs de personnels 1D et 2D. Le second degré ne comporte qu'un millésime.")
+```
+
+Entre 2024 et 2025, le premier degré passe de 316 886,5 à 314 691,5 ETP, soit
+une variation de −2 195 ETP (−0,69 %). Ce constat décrit les établissements
+couverts ; il ne mesure ni des départs nets ni des mobilités individuelles.
+
+```{r}
+knitr::include_graphics(unname(figures[["effectifs"]]))
+```
+
+# Profils par âge
+
+```{r}
+tables$age |>
+  dplyr::select(annee, degre, classe, proportion, couverture_etp) |>
+  gt::gt(groupname_col = "degre") |>
+  gt::fmt_percent(columns = c(proportion, couverture_etp), decimals = 1) |>
+  gt::cols_label(annee = "Année", classe = "Classe d'âge", proportion = "Proportion d'ETP",
+                 couverture_etp = "Couverture du dénominateur") |>
+  gt::tab_source_note("Source : DEPP. Les cellules masquées par le secret statistique restent exclues du dénominateur correspondant.")
+```
+
+Le premier degré présente une couverture d'environ 82 % des ETP pour les classes
+d'âge, contre 100 % dans le second degré. Les proportions du premier degré ne
+doivent donc pas être comparées sans tenir compte de cette couverture.
+
+```{r}
+knitr::include_graphics(unname(figures[["age"]]))
+```
+
+# Ancienneté dans l'établissement
+
+```{r}
+tables$anciennete |>
+  dplyr::select(annee, degre, classe, proportion, couverture_etp) |>
+  gt::gt(groupname_col = "degre") |>
+  gt::fmt_percent(columns = c(proportion, couverture_etp), decimals = 1) |>
+  gt::cols_label(annee = "Année", classe = "Ancienneté établissement",
+                 proportion = "Proportion d'ETP", couverture_etp = "Couverture") |>
+  gt::tab_source_note("Source : DEPP. L'ancienneté dans l'établissement n'est pas l'ancienneté de carrière.")
+```
+
+Dans le champ couvert, la part des ETP présents depuis huit ans ou plus atteint
+38,7 % dans le premier degré en 2025 et 48,6 % dans le second degré en 2024.
+Ces parts constituent des profils agrégés, pas des probabilités individuelles de
+stabilité.
+
+```{r}
+knitr::include_graphics(unname(figures[["anciennete"]]))
+```
+
+# Corps et grade
+
+```{r}
+tables$corps |>
+  gt::gt() |>
+  gt::fmt_number(columns = etp, decimals = 1, sep_mark = " ", dec_mark = ",") |>
+  gt::fmt_percent(columns = proportion, decimals = 1) |>
+  gt::cols_label(annee = "Année", corps = "Groupe de corps", etp = "ETP", proportion = "Part") |>
+  gt::tab_source_note("Source : DEPP, personnels du second degré. Groupes agrégés au niveau établissement.")
+```
+
+Les certifiés et PEPS représentent 61,9 % des ETP ventilés par groupe de corps
+en 2024. Le **grade individuel est absent** des données publiques acquises : il
+n'est ni décrit ni reconstitué.
+
+```{r}
+knitr::include_graphics(unname(figures[["corps"]]))
+```
+
+# Établissements
+
+```{r}
+tables$etablissements |>
+  gt::gt(groupname_col = "degre") |>
+  gt::fmt_number(columns = c(minimum, q1, mediane, q3, p90, maximum), decimals = 1, dec_mark = ",") |>
+  gt::cols_label(annee = "Année", minimum = "Minimum", q1 = "Q1", mediane = "Médiane",
+                 q3 = "Q3", p90 = "P90", maximum = "Maximum") |>
+  gt::tab_source_note("Source : DEPP. Unité : ETP enseignants par établissement.")
+```
+
+La médiane s'établit à 5,2 ETP dans le premier degré et à 34,5 ETP dans le
+second degré. Cet écart reflète notamment des structures d'établissement
+différentes ; il ne constitue pas un résultat sur leur efficacité.
+
+```{r}
+knitr::include_graphics(unname(figures[["etablissements"]]))
+```
+
+# Territoires
+
+```{r}
+territoires_2025 <- tables$territoires |>
+  dplyr::filter(annee == max(annee)) |>
+  dplyr::arrange(dplyr::desc(etp_enseignants)) |>
+  dplyr::slice_head(n = 15)
+
+territoires_2025 |>
+  gt::gt() |>
+  gt::fmt_number(columns = c(etablissements, etp_enseignants), decimals = 1, sep_mark = " ", dec_mark = ",") |>
+  gt::cols_label(annee = "Année", code_departement = "Code", nom_departement = "Département",
+                 etablissements = "Établissements", etp_enseignants = "ETP enseignants") |>
+  gt::tab_source_note("Source : DEPP, premier degré, 2025. Classement sur des effectifs, non sur des taux.")
+```
+
+```{r}
+knitr::include_graphics(unname(figures[["territoires"]]))
+```
+
+# Éducation prioritaire
+
+```{r}
+tables$education_prioritaire |>
+  dplyr::select(annee, degre, groupe, etablissements, etp_enseignants, part_etp) |>
+  gt::gt(groupname_col = "degre") |>
+  gt::fmt_number(columns = c(etablissements, etp_enseignants), decimals = 1, sep_mark = " ", dec_mark = ",") |>
+  gt::fmt_percent(columns = part_etp, decimals = 1) |>
+  gt::cols_label(annee = "Année", groupe = "Éducation prioritaire", etablissements = "Établissements",
+                 etp_enseignants = "ETP enseignants", part_etp = "Part des ETP") |>
+  gt::tab_source_note("Sources : DEPP et Annuaire de l'éducation. Statut EP issu du snapshot 2026.")
+```
+
+Le groupe REP ou REP+ représente environ 22,5 % des ETP appariés du premier
+degré et 10,0 % de ceux du second degré. Le décalage entre le millésime des
+personnels et le snapshot 2026 interdit une lecture historique certaine.
+
+```{r}
+knitr::include_graphics(unname(figures[["education_prioritaire"]]))
+```
+
+# Mobilités : ce que les données permettent
+
+```{r}
+tables$mobilite_resume |>
+  gt::gt() |>
+  gt::fmt_number(columns = c(moyenne, q1, mediane, q3, minimum, maximum), decimals = 2, dec_mark = ",") |>
+  gt::cols_label(annee = "Année", indicateur = "Ratio publié", departements_observes = "Départements",
+                 moyenne = "Moyenne", q1 = "Q1", mediane = "Médiane", q3 = "Q3",
+                 minimum = "Minimum", maximum = "Maximum") |>
+  gt::tab_source_note("Source : DGRH-DEPP, mouvement interdépartemental du premier degré public, 2019.")
+```
+
+La forte différence entre moyenne et médiane du ratio de pression des demandes
+d'entrée traduit une distribution très asymétrique. Ces mesures sont des
+**ratios départementaux**, pas des taux individuels. Elles ne permettent pas de
+décrire les changements d'établissement, de fonction ou les sorties véritables.
+
+```{r}
+knitr::include_graphics(unname(figures[["mobilite"]]))
+```
+
+Les 84 apparitions et 514 disparitions apparentes d'UAI décrites à l'étape 7
+restent des événements de présence dans le fichier. Elles ne sont pas ajoutées
+aux ratios de mobilité.
+
+# Validation
+
+```{r}
+descriptive$validation |>
+  gt::gt() |>
+  gt::tab_header(title = "Validation des sorties descriptives")
+```
+
+Les contrôles vérifient la non-négativité des effectifs, le bornage des
+proportions, l'unicité territoriale, la production des graphiques et l'absence de
+grade individuel fabriqué.

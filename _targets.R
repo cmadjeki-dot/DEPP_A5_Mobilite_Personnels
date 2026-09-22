@@ -1,7 +1,7 @@
 library(targets)
 
 tar_option_set(
-  packages = c("data.table", "digest", "dplyr", "fs", "yaml"),
+  packages = c("data.table", "digest", "dplyr", "fs", "ggplot2", "gt", "yaml"),
   format = "rds",
   error = "stop"
 )
@@ -33,5 +33,9 @@ list(
   tar_target(
     panel_data,
     run_panel_strategy(feature_data)
+  ),
+  tar_target(
+    descriptive_results,
+    run_descriptive_analysis(panel_data)
   )
 )

@@ -12,6 +12,8 @@ Imports:
     digest,
     dplyr,
     fs,
+    ggplot2,
+    gt,
     here,
     rmarkdown,
     sessioninfo,
