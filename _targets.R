@@ -37,5 +37,9 @@ list(
   tar_target(
     descriptive_results,
     run_descriptive_analysis(panel_data)
+  ),
+  tar_target(
+    trajectory_results,
+    run_trajectory_analysis(panel_data)
   )
 )

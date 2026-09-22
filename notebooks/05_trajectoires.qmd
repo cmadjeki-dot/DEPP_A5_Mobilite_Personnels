@@ -1,0 +1,150 @@
+---
+title: "Trajectoires professionnelles"
+subtitle: "Faisabilité individuelle et séquences alternatives de présence des établissements"
+author: "Projet DEPP A5 Mobilité des personnels"
+date: last-modified
+lang: fr
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: chargement
+trajectory <- targets::tar_read(trajectory_results, store = here::here("_targets"))
+```
+
+::: {.callout-important}
+## Conclusion scientifique
+
+Les trajectoires **professionnelles individuelles** ne sont pas observables dans
+les données ouvertes acquises. Il n'existe ni identifiant personnel stable, ni
+état professionnel individuel annuel, ni fonction individuelle, ni motif
+d'entrée ou de sortie. La profondeur maximale est de deux années au niveau UAI.
+
+Les exemples `Stable → Stable → Stable`, `Stable → Mobilité → Stable` et
+`Stable → Stable → Sortie` ne sont donc ni calculés ni simulés comme résultats
+réels. Ils nécessiteraient au minimum trois dates par personne.
+:::
+
+# Faisabilité des trajectoires professionnelles
+
+```{r}
+trajectory$feasibility |>
+  gt::gt() |>
+  gt::tab_header(title = "Audit des objets longitudinaux demandés") |>
+  gt::tab_source_note("Conclusion : les microdonnées individuelles sécurisées du panel BSA seraient nécessaires.")
+```
+
+# Stratégie alternative
+
+L'alternative décrit exclusivement la présence des **établissements** dans les
+fichiers du premier degré entre 2024 et 2025. Trois séquences sont observables :
+
+- `OBSERVE → OBSERVE` ;
+- `OBSERVE → ABSENT_DU_FICHIER` ;
+- `ABSENT_DU_FICHIER → OBSERVE`.
+
+Une absence du fichier n'est pas un état professionnel. Elle peut résulter d'une
+fermeture, d'une ouverture, d'un changement d'identifiant, d'un changement de
+champ ou d'un défaut de couverture.
+
+# Séquences fréquentes
+
+```{r}
+trajectory$profiles |>
+  gt::gt() |>
+  gt::fmt_number(columns = c(etablissements, duree_observee_mediane,
+                              etp_initial_median, etp_final_median,
+                              variation_etp_mediane), decimals = 1,
+                 sep_mark = " ", dec_mark = ",") |>
+  gt::fmt_percent(columns = c(part_des_uai, part_education_prioritaire), decimals = 2) |>
+  gt::cols_label(sequence_presence = "Séquence de présence", etablissements = "UAI",
+                 part_des_uai = "Part des UAI", duree_observee_mediane = "Durée observée médiane",
+                 etp_initial_median = "ETP initial médian", etp_final_median = "ETP final médian",
+                 variation_etp_mediane = "Variation médiane", part_education_prioritaire = "Part EP") |>
+  gt::tab_source_note("Source : DEPP, personnels du premier degré. Unité : établissement, jamais personnel.")
+```
+
+Parmi 47 591 UAI observées au moins une fois, 46 993 (98,74 %) sont présentes
+aux deux dates, 514 (1,08 %) sont présentes seulement en 2024 et 84 (0,18 %)
+seulement en 2025. La variation médiane d'ETP des établissements présents aux
+deux dates est nulle. Ces constats ne renseignent pas les parcours des agents.
+
+```{r}
+knitr::include_graphics(unname(trajectory$figures[["sequences"]]))
+```
+
+# Durée dans les états
+
+La seule durée calculable est le nombre d'années où une UAI est observée dans la
+fenêtre : une ou deux années. Elle est censurée à gauche pour les UAI présentes
+en 2024 et à droite pour celles présentes en 2025. Elle ne mesure ni la durée
+d'un poste, ni l'ancienneté professionnelle, ni le temps avant mobilité.
+
+Avec deux dates seulement, aucune séquence à trois états et aucune durée complète
+ne sont identifiables.
+
+# Matrice de transition alternative
+
+```{r}
+trajectory$matrix |>
+  gt::gt() |>
+  gt::fmt_number(columns = N, decimals = 0, sep_mark = " ") |>
+  gt::fmt_percent(columns = proportion_conditionnelle, decimals = 2) |>
+  gt::cols_label(etat_origine = "Présence en 2024", etat_destination = "Présence en 2025",
+                 N = "UAI", proportion_conditionnelle = "Proportion conditionnelle") |>
+  gt::tab_source_note("Univers : UAI observées au moins une fois. La transition absent→absent est hors de l'univers et non observable.")
+```
+
+Parmi les UAI observées en 2024, 98,92 % sont aussi observées en 2025 et 1,08 %
+ne le sont plus. Le taux de 100 % pour `ABSENT_DU_FICHIER → OBSERVE` résulte de
+la sélection de l'univers — une UAI absente en 2024 n'entre dans la base que si
+elle apparaît en 2025. Il ne s'agit donc pas d'un taux d'entrée.
+
+```{r}
+knitr::include_graphics(unname(trajectory$figures[["matrice_presence"]]))
+```
+
+# Profils de parcours
+
+Les profils présentés sont des profils d'établissements selon leur séquence de
+présence. La part d'éducation prioritaire vaut 13,91 % pour les UAI présentes aux
+deux dates, 10,71 % pour les disparitions apparentes et 32,53 % pour les
+apparitions. Le dernier groupe ne comprend que 84 UAI et le statut EP provient
+du snapshot 2026. Ces écarts sont descriptifs, fragiles et non transposables aux
+personnels.
+
+# Description, association et causalité
+
+```{r}
+trajectory$registers |>
+  gt::gt() |>
+  gt::tab_header(title = "Registre d'interprétation")
+```
+
+- **Description** : réalisée sur la présence des UAI et les ETP agrégés.
+- **Association** : aucune association de trajectoire professionnelle n'est
+  estimée ; une relation au niveau établissement resterait écologique.
+- **Causalité** : aucun effet causal n'est identifié. Une différence descriptive
+  ne démontre aucun effet du territoire ou de l'éducation prioritaire.
+
+# Validation
+
+```{r}
+trajectory$validation |>
+  gt::gt() |>
+  gt::tab_header(title = "Validation des séquences alternatives")
+```
+
+Les contrôles garantissent une ligne par UAI, l'exhaustivité de la matrice, la
+restriction aux séquences autorisées et l'absence de variable individuelle
+fabriquée. La profondeur temporelle de deux observations reste une limite
+bloquante pour les trajectoires professionnelles demandées.
