@@ -25,5 +25,9 @@ list(
   tar_target(
     cleaned_data,
     run_all_cleaning(source_manifest, quality_report)
+  ),
+  tar_target(
+    feature_data,
+    run_feature_engineering(cleaned_data)
   )
 )
