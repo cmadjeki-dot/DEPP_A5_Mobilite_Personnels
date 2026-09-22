@@ -1,0 +1,83 @@
+---
+title: "Évaluation comparative des modèles"
+subtitle: "Étape 14 — performance, stabilité, généralisation et calibration"
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: initialisation
+library(gt)
+library(targets)
+
+results <- tar_read(evaluation_results, store = here::here("_targets"))
+```
+
+::: {.callout-important}
+## Statut de l'évaluation
+
+**`r results$status`**
+
+L'étape 13 n'a entraîné aucun modèle, car la mobilité individuelle à `t+1` et une profondeur temporelle suffisante ne sont pas disponibles. Il n'existe donc aucune prédiction hors échantillon à comparer. Publier des AUC, une matrice de confusion ou une calibration dans cette situation fabriquerait des résultats.
+:::
+
+## Métriques prévues
+
+```{r}
+#| label: metriques
+results$definitions |>
+  gt() |>
+  tab_header(title = "Métriques et rôle dans l'évaluation")
+```
+
+L'accuracy est conservée comme information secondaire, mais elle n'est jamais utilisée seule. Pour une mobilité potentiellement rare, un modèle prédisant presque toujours « aucune mobilité » pourrait obtenir une accuracy élevée tout en ayant un recall nul. La PR-AUC est donc prioritaire, complétée par la ROC-AUC et les métriques calculées à un seuil explicitement documenté.
+
+La sensibilité et le recall sont mathématiquement équivalents pour une même classe positive. Les deux libellés sont conservés afin d'éviter toute ambiguïté avec les usages métiers.
+
+## Contrat des prédictions
+
+```{r}
+#| label: contrat
+results$contract |>
+  gt() |>
+  tab_header(title = "Format requis pour une évaluation hors échantillon")
+```
+
+Seules les prédictions issues des validations temporelles et du test final sont admises. Les performances d'entraînement sont rejetées par le code. Le test final ne doit être évalué qu'une fois, après la sélection du workflow et des hyperparamètres.
+
+## Comparaison multicritère
+
+```{r}
+#| label: caracteristiques
+results$characteristics |>
+  gt() |>
+  tab_header(title = "Complexité et interprétabilité attendues")
+```
+
+```{r}
+#| label: decision
+results$rules |>
+  gt() |>
+  tab_header(title = "Règles de comparaison et de décision")
+```
+
+Le module [R/evaluation.R](../R/evaluation.R) calcule, lorsque les prédictions conformes sont disponibles :
+
+- ROC-AUC et PR-AUC par modèle et période ;
+- précision, recall, F1, sensibilité, spécificité et accuracy au seuil documenté ;
+- matrices de confusion détaillées ;
+- score de Brier, erreur de calibration attendue et courbes par classes de risque ;
+- moyenne, écart-type, minimum et maximum entre folds temporels ;
+- écarts entre validation temporelle et test final.
+
+## Politique de sélection
+
+Aucun modèle n'est sélectionné automatiquement sur le maximum d'une seule métrique. Une forêt ou un boosting ne sera retenu face à la régression logistique que si son gain hors échantillon est substantiel, stable dans le temps, correctement calibré et utile au regard du coût d'interprétation et de maintenance.
+
+Le seuil de classification devra être choisi selon les coûts métier des faux positifs et faux négatifs, sans utiliser le test final pour l'optimiser. La décision finale restera documentée et humaine.
