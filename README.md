@@ -4,7 +4,16 @@
 
 Ce projet étudie les effectifs, les profils et les disparités territoriales des personnels enseignants. Il montre aussi, de façon explicite et auditée, ce que les données ouvertes permettent — et ne permettent pas — d’établir sur les mobilités et les trajectoires professionnelles.
 
+## Auteur
+
+**Cédric MADJEKI-MA-MOUSSAVOU BIGNOUMBA**
+
+Compte GitHub : [cmadjeki-dot](https://github.com/cmadjeki-dot). Projet personnel de démonstration méthodologique, sans affiliation institutionnelle revendiquée.
+
 ## Présentation
+
+- [Site de présentation du projet](https://cmadjeki-dot.github.io/DEPP_A5_Mobilite_Personnels/)
+- [Code source du tableau de bord Shiny](dashboard/app.R) — déploiement public en cours ; lancement local documenté ci-dessous.
 
 Le dépôt couvre toute la chaîne d’une étude de statistique publique : recherche des sources, import traçable, contrôle qualité, préparation, construction d’indicateurs, analyses descriptive et territoriale, économétrie exploratoire, restitution, dashboard, tests et industrialisation.
 
@@ -124,6 +133,8 @@ Chaque graphique précise le champ, la période, l’unité, la source et, si n�
 ## Dashboard
 
 L’application [`dashboard/app.R`](dashboard/app.R) comporte sept onglets : Vue générale, Profils, Mobilités, Territoires, Trajectoires, Modélisation et Méthodologie. Elle consomme les résultats préparés sans recalculer toutes les analyses au lancement.
+
+**Accès :** le [code du tableau de bord](dashboard/app.R) est disponible dans le dépôt. Son URL publique sera ajoutée ici dès la finalisation du déploiement Shiny. En attendant, il peut être exécuté localement avec la commande suivante :
 
 ~~~r
 shiny::runApp("dashboard")
