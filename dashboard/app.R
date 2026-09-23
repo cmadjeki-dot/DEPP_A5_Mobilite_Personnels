@@ -2,6 +2,11 @@ library(shiny)
 library(bslib)
 library(ggplot2)
 
+# Utiliser un cache CSS temporaire accessible en écriture, notamment sous Windows.
+sass_cache <- file.path(tempdir(), "DEPP_A5_sass_cache")
+dir.create(sass_cache, recursive = TRUE, showWarnings = FALSE)
+options(sass.cache = sass_cache)
+
 project_root <- here::here()
 tables_root <- file.path(project_root, "outputs", "tables")
 figures_root <- file.path(project_root, "outputs", "figures")
