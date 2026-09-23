@@ -30,6 +30,7 @@ Imports:
     tarchetypes,
     testthat,
     tidymodels,
+    visNetwork,
     vip,
     ranger,
     xgboost,
