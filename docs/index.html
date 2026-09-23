@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parcours et mobilité des personnels enseignants</title>
+  <style>
+    :root { color-scheme: light; --blue: #173f5f; --accent: #2878a8; --paper: #f5f7fa; }
+    body { margin: 0; font-family: system-ui, sans-serif; color: #17212b; background: var(--paper); line-height: 1.6; }
+    main { max-width: 900px; margin: 0 auto; padding: 4rem 1.25rem; }
+    h1 { color: var(--blue); line-height: 1.15; font-size: clamp(2rem, 5vw, 3.4rem); }
+    .lead { font-size: 1.2rem; max-width: 760px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; margin: 2rem 0; }
+    .card { display: block; padding: 1.25rem; border-radius: .7rem; background: white; color: inherit; text-decoration: none; box-shadow: 0 2px 12px #173f5f18; }
+    .card:hover { outline: 2px solid var(--accent); }
+    .card strong { color: var(--blue); font-size: 1.1rem; }
+    .notice { border-left: 4px solid var(--accent); padding: .8rem 1rem; background: white; }
+    footer { margin-top: 3rem; color: #53606c; font-size: .9rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Parcours et mobilité des personnels enseignants</h1>
+  <p class="lead">Démonstrateur reproductible de statistique publique fondé sur les données ouvertes de la DEPP et du ministère de l’Éducation nationale.</p>
+  <div class="grid">
+    <a class="card" href="reports/note_information.html"><strong>Note d’information</strong><br>Les principaux résultats dans un format synthétique.</a>
+    <a class="card" href="reports/rapport_methodologique.html"><strong>Rapport méthodologique</strong><br>Sources, méthodes, contrôles et limites de l’étude.</a>
+    <a class="card" href="notebooks/04_analyse_descriptive.html"><strong>Analyse descriptive</strong><br>Effectifs, évolutions et profils observés.</a>
+    <a class="card" href="notebooks/06_econometrie.html"><strong>Économétrie</strong><br>Associations conditionnelles et diagnostics.</a>
+  </div>
+  <p class="notice"><strong>Champ d’interprétation :</strong> les données sont principalement agrégées au niveau établissement × année. Elles ne permettent pas de mesurer les trajectoires individuelles des personnels ni d’identifier des effets causaux.</p>
+  <footer>Projet démonstrateur — résultats issus exclusivement des données ouvertes et du pipeline reproductible du dépôt.</footer>
+</main>
+</body>
+</html>

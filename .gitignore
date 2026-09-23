@@ -9,6 +9,13 @@
 .env
 .env.*
 !.env.example
+.httr-oauth
+.secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
 
 # renv : conserver renv.lock, activate.R et settings.json
 renv/library/
