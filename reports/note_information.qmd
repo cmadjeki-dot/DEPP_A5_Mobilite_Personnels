@@ -1,0 +1,202 @@
+---
+title: "Parcours et mobilité des personnels enseignants : facteurs associés et trajectoires professionnelles"
+subtitle: "Restitution synthétique inspirée d'une Note d'information de statistique publique"
+author: "Projet DEPP A5 — Mobilité des personnels"
+date: last-modified
+lang: fr
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: donnees
+library(dplyr)
+library(ggplot2)
+library(gt)
+
+root <- here::here()
+read_result <- function(...) utils::read.csv2(file.path(root, ...), dec = ".", stringsAsFactors = FALSE,
+  check.names = FALSE, fileEncoding = "UTF-8")
+effectifs <- read_result("outputs", "tables", "descriptive", "effectifs.csv")
+age <- read_result("outputs", "tables", "descriptive", "age.csv")
+anciennete <- read_result("outputs", "tables", "descriptive", "anciennete.csv")
+mobilite <- read_result("outputs", "tables", "descriptive", "mobilite_resume.csv")
+sequences <- read_result("outputs", "tables", "trajectories", "profils_sequences_presence.csv")
+territoires <- read_result("outputs", "tables", "territorial", "effets_composition_territoriale.csv")
+coefficients <- read_result("outputs", "tables", "econometrics", "coefficients_logit.csv")
+diagnostics <- read_result("outputs", "tables", "econometrics", "diagnostics.csv")
+
+fmt_number <- function(x, digits = 0) format(round(x, digits), big.mark = " ", decimal.mark = ",", nsmall = digits)
+fmt_percent <- function(x, digits = 1) paste0(format(round(100 * x, digits), decimal.mark = ",", nsmall = digits), " %")
+p1_2024 <- subset(effectifs, degre == "Premier degré" & annee == 2024)
+p1_2025 <- subset(effectifs, degre == "Premier degré" & annee == 2025)
+age_2025 <- subset(age, degre == "Premier degré" & annee == 2025)
+tenure_2025 <- subset(anciennete, degre == "Premier degré" & annee == 2025)
+```
+
+::: {.callout-important}
+## L'ESSENTIEL
+
+- Dans le premier degré, les données recensent **`r fmt_number(p1_2025$etp_enseignants, 1)` ETP enseignants en 2025**, contre `r fmt_number(p1_2024$etp_enseignants, 1)` en 2024, soit une évolution de **`r fmt_percent(p1_2025$taux_variation_etp)`**.
+- Parmi les ETP pour lesquels l'âge est renseigné en 2025, **`r fmt_percent(age_2025$proportion[age_2025$classe == "50 ans ou plus"])` ont 50 ans ou plus** et `r fmt_percent(age_2025$proportion[age_2025$classe == "Moins de 35 ans"])` ont moins de 35 ans.
+- Parmi les ETP renseignés sur l'ancienneté dans l'établissement, **`r fmt_percent(tenure_2025$proportion[tenure_2025$classe == "Moins de 2 ans"])` ont moins de deux ans d'ancienneté** et `r fmt_percent(tenure_2025$proportion[tenure_2025$classe == "8 ans ou plus"])` huit ans ou plus.
+- `r fmt_number(sequences$etablissements[sequences$sequence_presence == "OBSERVE → OBSERVE"])` UAI sont présentes dans les fichiers 2024 et 2025, soit `r fmt_percent(sequences$part_des_uai[sequences$sequence_presence == "OBSERVE → OBSERVE"])` de l'union des UAI observées au moins une fois.
+- **Ces données ne suivent pas les personnels individuellement et ne permettent pas de mesurer une trajectoire professionnelle**, une durée avant mobilité ou une probabilité individuelle de mobilité.
+:::
+
+## Population étudiée
+
+L'étude porte principalement sur les établissements scolaires couverts par les indicateurs de personnels de la DEPP. L'unité statistique est l'**établissement × année** et les effectifs sont exprimés en équivalents temps plein (ETP). Le premier degré est observé en 2024 et 2025; le second degré uniquement en 2024 dans les données acquises.
+
+Le fichier relatif au mouvement interdépartemental du premier degré public porte sur 101 départements en 2019. Il diffuse trois ratios agrégés, sans effectifs de demandes ni flux individuels origine–destination.
+
+## Principaux résultats
+
+```{r}
+#| label: chiffres-cles
+data.frame(
+  Indicateur = c("ETP enseignants du premier degré en 2025", "Évolution des ETP du premier degré 2024–2025",
+    "Part âgée de 50 ans ou plus en 2025", "Part avec moins de 2 ans dans l'établissement en 2025",
+    "UAI observées en 2024 et 2025"),
+  Résultat = c(fmt_number(p1_2025$etp_enseignants, 1), fmt_percent(p1_2025$taux_variation_etp),
+    fmt_percent(age_2025$proportion[age_2025$classe == "50 ans ou plus"]),
+    fmt_percent(tenure_2025$proportion[tenure_2025$classe == "Moins de 2 ans"]),
+    paste0(fmt_number(sequences$etablissements[sequences$sequence_presence == "OBSERVE → OBSERVE"]),
+      " (", fmt_percent(sequences$part_des_uai[sequences$sequence_presence == "OBSERVE → OBSERVE"]), ")")),
+  Nature = c("Observation", "Évolution descriptive", "Composition des ETP renseignés",
+    "Composition des ETP renseignés", "Présence dans les fichiers, pas trajectoire individuelle")) |>
+  gt() |>
+  tab_header(title = "Cinq repères issus des données observées")
+```
+
+## Évolutions
+
+Entre 2024 et 2025, les ETP enseignants du premier degré diminuent de `r fmt_number(abs(p1_2025$variation_etp), 0)`, soit `r fmt_percent(p1_2025$taux_variation_etp)`. Sur la même période, le nombre d'établissements présents dans le fichier passe de `r fmt_number(p1_2024$etablissements)` à `r fmt_number(p1_2025$etablissements)`.
+
+```{r}
+#| label: evolution-etp
+#| fig-cap: "Effectifs enseignants agrégés. Source : DEPP, indicateurs de personnels."
+ggplot(subset(effectifs, degre == "Premier degré"), aes(annee, etp_enseignants)) +
+  geom_line(linewidth = 1, color = "#234E70") + geom_point(size = 3, color = "#234E70") +
+  scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
+  theme_minimal(base_size = 12) + labs(x = "Année", y = "ETP enseignants",
+    title = "Une baisse de 0,7 % des ETP du premier degré entre 2024 et 2025")
+```
+
+Cette variation ne peut pas être décomposée en recrutements, départs, changements de quotité et mobilités : les données sont agrégées au niveau établissement.
+
+## Profils
+
+En 2025, les informations d'âge et d'ancienneté couvrent `r fmt_percent(age_2025$couverture_etp[1])` des ETP du premier degré. Les proportions suivantes portent uniquement sur ce dénominateur renseigné.
+
+```{r}
+#| label: profils
+profiles <- rbind(
+  transform(age_2025[, c("classe", "proportion")], dimension = "Âge"),
+  transform(tenure_2025[, c("classe", "proportion")], dimension = "Ancienneté dans l'établissement"))
+ggplot(profiles, aes(classe, proportion, fill = classe)) + geom_col(show.legend = FALSE) +
+  facet_wrap(~dimension, scales = "free_x") + scale_y_continuous(labels = scales::label_percent()) +
+  theme_minimal(base_size = 11) + theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  labs(x = NULL, y = "Proportion des ETP renseignés",
+    title = "Âge et ancienneté dans l'établissement des enseignants du premier degré en 2025")
+```
+
+La part des 50 ans ou plus passe de `r fmt_percent(subset(age, degre == "Premier degré" & annee == 2024 & classe == "50 ans ou plus")$proportion)` en 2024 à `r fmt_percent(age_2025$proportion[age_2025$classe == "50 ans ou plus"])` en 2025. Cette évolution descriptive ne permet pas d'identifier les mécanismes sous-jacents.
+
+## Mobilités
+
+Le fichier du mouvement interdépartemental du premier degré public décrit uniquement l'année 2019. La médiane départementale du ratio demandes d'entrée en premier vœu / demandes de sortie est de `r fmt_number(mobilite$mediane[mobilite$indicateur == "pression_demandes_entree_sortie"], 2)`. La médiane du ratio sorties réalisées / sorties demandées est de `r fmt_number(mobilite$mediane[mobilite$indicateur == "ratio_sorties_realisees_demandees"], 2)`, et celle du ratio entrées / sorties réalisées de `r fmt_number(mobilite$mediane[mobilite$indicateur == "ratio_entrees_sorties_realisees"], 2)`.
+
+Ces indicateurs décrivent des rapports départementaux. Ils ne constituent ni des taux individuels de mobilité, ni une matrice de transitions, ni une mesure de durée avant mobilité.
+
+Concernant la présence des établissements, `r fmt_number(sequences$etablissements[sequences$sequence_presence == "OBSERVE → ABSENT_DU_FICHIER"])` UAI observées en 2024 sont absentes du fichier 2025, tandis que `r fmt_number(sequences$etablissements[sequences$sequence_presence == "ABSENT_DU_FICHIER → OBSERVE"])` apparaissent en 2025. Une disparition du fichier ne prouve pas une fermeture et encore moins une sortie de personnel.
+
+## Territoires
+
+Les données permettent des agrégations par département, académie et région. En 2025, la part nationale pondérée des ETP âgés de 50 ans ou plus est de `r fmt_percent(territoires$moyenne_nationale_ponderee_etp[1])`. La moitié centrale des proportions départementales est comprise entre `r fmt_percent(territoires$q1[1])` et `r fmt_percent(territoires$q3[1])`.
+
+Pour l'ancienneté inférieure à deux ans dans l'établissement, la part nationale pondérée est de `r fmt_percent(territoires$moyenne_nationale_ponderee_etp[2])`; la moitié centrale des départements s'étend de `r fmt_percent(territoires$q1[2])` à `r fmt_percent(territoires$q3[2])`.
+
+La moyenne simple des parts départementales diffère de la moyenne nationale pondérée par les ETP. Cet écart reflète la composition et la taille différentes des départements; il ne mesure pas un « effet du territoire ».
+
+## Analyse toutes choses égales par ailleurs
+
+Une régression logistique exploratoire étudie l'**absence d'une UAI dans le fichier 2025** parmi les établissements observés en 2024. Après sélection des observations complètes, elle porte sur 27 151 UAI et 123 événements, soit `r fmt_percent(diagnostics$RESULTAT[diagnostics$DIAGNOSTIC == "Taux d'evenement"], 2)`.
+
+```{r}
+#| label: modele
+model_display <- subset(coefficients, term != "(Intercept)",
+  select = c(term, odds_ratio, or_ic95_basse, or_ic95_haute, p.value))
+model_display$term <- c("Taille : log(1 + ETP)", "Ancienneté < 2 ans (+10 points)",
+  "Âge 50 ans ou plus (+10 points)", "Femmes (+10 points)", "Secteur public")
+model_display |>
+  mutate(`Odds ratio` = round(odds_ratio, 3), `IC95 %` = paste0("[", round(or_ic95_basse, 3), " ; ", round(or_ic95_haute, 3), "]"),
+    `p-value` = signif(p.value, 3)) |>
+  select(Variable = term, `Odds ratio`, `IC95 %`, `p-value`) |>
+  gt() |>
+  tab_header(title = "Associations conditionnelles avec l'absence de l'UAI en 2025",
+    subtitle = "Régression logistique; les parts sont exprimées par hausse de 10 points")
+```
+
+La part d'ETP ayant moins de deux ans d'ancienneté n'est pas associée statistiquement à l'issue dans ce modèle : odds ratio `r fmt_number(coefficients$odds_ratio[coefficients$term == "anciennete_moins_2_10pp"], 2)`, IC95 % [`r fmt_number(coefficients$or_ic95_basse[coefficients$term == "anciennete_moins_2_10pp"], 2)`; `r fmt_number(coefficients$or_ic95_haute[coefficients$term == "anciennete_moins_2_10pp"], 2)`]. Il en va de même pour les parts âgées de 50 ans ou plus et de femmes, dont les intervalles de confiance incluent 1.
+
+Le secteur public présente des odds plus élevées d'absence du fichier que le privé sous contrat dans cette spécification (OR `r fmt_number(coefficients$odds_ratio[coefficients$term == "secteurPUBLIC"], 2)`, IC95 % [`r fmt_number(coefficients$or_ic95_basse[coefficients$term == "secteurPUBLIC"], 2)`; `r fmt_number(coefficients$or_ic95_haute[coefficients$term == "secteurPUBLIC"], 2)`]). L'événement étant rare et sa nature administrative incertaine, ce résultat ne doit pas être interprété comme un effet du secteur sur la mobilité ou la fermeture.
+
+Ici, « toutes choses égales par ailleurs » signifie seulement que les autres variables incluses sont maintenues constantes. Cette expression ne transforme pas l'association en relation causale.
+
+## Méthodologie
+
+Les fichiers sont téléchargés depuis les URL officielles configurées. Chaque fichier raw est conservé, horodaté et associé à une empreinte SHA-256. Les formats, encodages, volumes et colonnes minimales sont contrôlés avant traitement.
+
+Les proportions sont calculées après agrégation des numérateurs et dénominateurs, et non comme une moyenne non pondérée des établissements. La couverture en ETP est conservée. Les valeurs protégées par le secret statistique restent manquantes.
+
+Le pipeline est orchestré avec `targets`, les dépendances avec `renv`, les contrôles avec `testthat` et les documents avec Quarto. Les données raw ne sont jamais modifiées.
+
+## Sources
+
+- DEPP, *Indicateurs de personnels des établissements du premier degré*, millésimes 2024–2025.
+- DEPP, *Indicateurs de personnels des établissements du second degré*, millésime 2024.
+- DGRH–DEPP, *Mouvement interdépartemental des enseignants du premier degré public*, année 2019.
+- Ministère de l'Éducation nationale, *Annuaire de l'éducation*, photographie du 22 septembre 2026.
+- DEPP, indices de position sociale des écoles, collèges et lycées.
+
+Les sources, URL, licences, formats et empreintes sont détaillés dans le rapport méthodologique et dans `config/data_sources.yml`.
+
+## Définitions
+
+**ETP enseignant** : volume d'emploi enseignant exprimé en équivalent temps plein. Un ETP n'est pas nécessairement une personne.
+
+**Ancienneté dans l'établissement** : temps passé dans l'établissement courant; elle ne correspond pas à l'ancienneté de carrière.
+
+**Mobilité** : changement individuel d'affectation entre deux dates. Cette variable n'est pas directement observée dans les données ouvertes utilisées.
+
+**Présence d'une UAI** : apparition de l'identifiant d'établissement dans un millésime. Une apparition ou disparition du fichier n'est pas une entrée ou sortie de personnel.
+
+**Odds ratio** : rapport d'odds conditionnel estimé par le modèle logistique. Il ne s'agit ni d'un risque relatif ni d'un effet causal.
+
+## Limites
+
+- aucun identifiant individuel stable de personnel ;
+- seulement deux années dans le premier degré et une année dans le second degré ;
+- variables de personnel agrégées en ETP ;
+- secret statistique pour certaines composantes du premier degré ;
+- statut d'éducation prioritaire issu d'une photographie 2026 ;
+- ratios départementaux de mouvement limités à 2019 ;
+- absence de matrice origine–destination et de motifs de sortie ;
+- risque d'erreur écologique ;
+- aucune stratégie d'identification causale ;
+- analyse de survie, prédiction de la mobilité à `t+1` et explicabilité non réalisables sur les données ouvertes.
+
+::: {.callout-note}
+### Lecture générale
+
+Les résultats décrivent des effectifs, des compositions et des disparités territoriales observées. Le modèle économétrique décrit des associations avec la présence d'un établissement dans deux fichiers successifs. **Aucun résultat ne mesure un effet causal ni une trajectoire individuelle de personnel.**
+:::
