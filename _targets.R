@@ -21,13 +21,31 @@ tar_source("R")
 
 list(
   tar_target(
+    config_files,
+    c("config/data_sources.yml", "config/paths.yml"),
+    format = "file",
+    description = "Fichiers de configuration suivis par le pipeline"
+  ),
+  tar_target(
     sources,
-    list(environment = build_environment_manifest(), manifest = read_source_manifest()),
+    list(
+      environment = build_environment_manifest(),
+      manifest = read_source_manifest(config_files[basename(config_files) == "data_sources.yml"])
+    ),
     description = "Versions de l'environnement et manifeste des sources officielles"
   ),
   tar_target(import_results, run_all_imports(sources$manifest),
     description = "Import reproductible et provenance des fichiers raw"),
-  tar_target(quality_report, run_quality_audit(sources$manifest, import_results),
+  tar_target(
+    raw_files,
+    normalizePath(import_results$raw_path, winslash = "/", mustWork = TRUE),
+    format = "file",
+    description = "Fichiers bruts immuables suivis par empreinte targets"
+  ),
+  tar_target(quality_report, {
+      raw_files
+      run_quality_audit(sources$manifest, import_results)
+    },
     description = "Diagnostic qualite avant toute correction"),
   tar_target(cleaned_data, run_all_cleaning(sources$manifest, quality_report),
     description = "Donnees nettoyees sans modification des fichiers raw"),
@@ -80,27 +98,61 @@ list(
     description = "Toutes les tables et tous les modeles diffuses"
   ),
   tar_target(
+    report_sources,
+    c(
+      "reports/initialisation.qmd",
+      "reports/rapport_methodologique.qmd",
+      "reports/note_information.qmd"
+    ),
+    format = "file",
+    description = "Sources Quarto des rapports"
+  ),
+  tar_target(
+    notebook_sources,
+    sort(list.files("notebooks", pattern = "[.]qmd$", full.names = TRUE)),
+    format = "file",
+    description = "Sources Quarto des notebooks"
+  ),
+  tar_target(
     reports,
     render_pipeline_reports(
-      dependencies = list(figures, tables),
-      reports = c("reports/rapport_methodologique.qmd", "reports/note_information.qmd")
+      dependencies = list(figures, tables, report_sources),
+      reports = report_sources
     ),
     format = "file",
     description = "Rapport methodologique et note d'information rendus avec Quarto"
   ),
   tar_target(
+    notebooks,
+    render_pipeline_reports(
+      dependencies = list(figures, tables, notebook_sources),
+      reports = notebook_sources
+    ),
+    format = "file",
+    description = "Notebooks analytiques rendus avec Quarto"
+  ),
+  tar_target(
+    dashboard_source,
+    "dashboard/app.R",
+    format = "file",
+    description = "Code source du dashboard"
+  ),
+  tar_target(
     dashboard_validation,
-    run_dashboard_validation(
+    {
+      dashboard_source
+      run_dashboard_validation(
       descriptive_results, trajectory_results, territorial_results,
       econometric_results, survival_results, modeling_results,
       evaluation_results, explainability_results
-    ),
+      )
+    },
     description = "Validation des artefacts consommes par le dashboard"
   ),
   tar_target(
     pipeline_manifest,
     write_pipeline_manifest(
-      dependencies = list(reports, dashboard_validation),
+      dependencies = list(reports, notebooks, dashboard_validation),
       sources = sources,
       path = "outputs/pipeline_manifest.csv"
     ),

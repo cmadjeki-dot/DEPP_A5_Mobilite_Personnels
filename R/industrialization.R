@@ -37,7 +37,7 @@ render_pipeline_reports <- function(dependencies, reports, root = here::here()) 
 
 write_pipeline_manifest <- function(dependencies, sources, path, root = here::here()) {
   invisible(dependencies)
-  output <- file.path(root, path)
+  output <- if (fs::is_absolute_path(path)) path else file.path(root, path)
   fs::dir_create(dirname(output))
   manifest <- data.frame(
     COMPOSANT = c("R", "targets", "Quarto", "sources", "rapports"),
@@ -45,7 +45,7 @@ write_pipeline_manifest <- function(dependencies, sources, path, root = here::he
       R.version.string,
       as.character(utils::packageVersion("targets")),
       quarto_version(),
-      as.character(length(sources$manifest)),
+      as.character(length(sources$manifest$sources)),
       as.character(length(dependencies[[1]]))
     ),
     STATUT = "OK",

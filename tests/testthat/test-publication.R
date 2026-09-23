@@ -24,12 +24,8 @@ test_that("aucun secret ni chemin utilisateur ne figure dans les fichiers suivis
   expect_false(any(grepl("C:[/\\\\]Users[/\\\\]", content, perl = TRUE)))
 })
 
-test_that("GitHub Pages publie uniquement la documentation statique", {
-  workflow <- paste(readLines(here::here(".github", "workflows", "pages.yml"), warn = FALSE), collapse = "\n")
-  expect_match(workflow, "path: docs", fixed = TRUE)
-  expect_match(workflow, "pages: write", fixed = TRUE)
-  expect_match(workflow, "id-token: write", fixed = TRUE)
-  expect_false(grepl("data/", workflow, fixed = TRUE))
+test_that("GitHub Pages utilise uniquement la publication native du dossier docs", {
+  expect_false(file.exists(here::here(".github", "workflows", "pages.yml")))
   expect_true(file.exists(here::here("docs", "index.html")))
   expect_true(file.exists(here::here("docs", ".nojekyll")))
 })

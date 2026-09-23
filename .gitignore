@@ -34,6 +34,7 @@ _targets.RData
 /.cache/
 **/*_files/
 **/*_cache/
+/docs/outputs/
 
 # Donnees : ne versionner que les fichiers d'ancrage
 data/raw/*

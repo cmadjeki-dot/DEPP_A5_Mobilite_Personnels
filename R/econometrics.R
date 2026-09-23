@@ -59,6 +59,85 @@ tidy_econometric_coefficients <- function(model) {
   coefficients
 }
 
+clustered_logit_coefficients <- function(model, cluster) {
+  if (length(cluster) != stats::nobs(model)) stop("Le vecteur de regroupement doit correspondre aux observations du modele.", call. = FALSE)
+  if (anyNA(cluster)) stop("Le regroupement territorial ne peut pas contenir de valeur manquante.", call. = FALSE)
+  x <- stats::model.matrix(model)
+  y <- stats::model.response(stats::model.frame(model))
+  probability <- stats::fitted(model)
+  scores <- x * as.numeric(y - probability)
+  cluster_scores <- rowsum(scores, group = cluster, reorder = FALSE)
+  bread <- stats::vcov(model)
+  n <- nrow(x); k <- ncol(x); groups <- nrow(cluster_scores)
+  correction <- (groups / (groups - 1)) * ((n - 1) / (n - k))
+  covariance <- correction * bread %*% crossprod(cluster_scores) %*% bread
+  standard_error <- sqrt(diag(covariance))
+  estimate <- stats::coef(model)
+  statistic <- estimate / standard_error
+  p_value <- 2 * stats::pnorm(abs(statistic), lower.tail = FALSE)
+  data.frame(
+    term = names(estimate), estimate = unname(estimate),
+    std.error_cluster_departement = unname(standard_error),
+    statistic = unname(statistic), p.value = unname(p_value),
+    odds_ratio = exp(unname(estimate)),
+    or_ic95_basse = exp(unname(estimate) - stats::qnorm(.975) * unname(standard_error)),
+    or_ic95_haute = exp(unname(estimate) + stats::qnorm(.975) * unname(standard_error)),
+    groupes = groups, stringsAsFactors = FALSE
+  )
+}
+
+influence_diagnostics <- function(model, data, top_n = 20L) {
+  cooks <- stats::cooks.distance(model)
+  leverage <- stats::hatvalues(model)
+  residual <- stats::rstandard(model)
+  order_influence <- order(cooks, decreasing = TRUE)
+  top <- head(order_influence, top_n)
+  list(
+    summary = data.frame(
+      INDICATEUR = c("Seuil Cook 4/n", "Observations au-dessus du seuil", "Cook maximum",
+        "Levier maximum", "Evenements parmi les observations signalees"),
+      RESULTAT = c(4 / length(cooks), sum(cooks > 4 / length(cooks)), max(cooks),
+        max(leverage), sum(data$y_absence_2025[cooks > 4 / length(cooks)])),
+      stringsAsFactors = FALSE
+    ),
+    top = data.frame(
+      rang = seq_along(top), uai = data$uai[top],
+      code_departement = data$code_departement[top],
+      evenement = data$y_absence_2025[top],
+      distance_cook = cooks[top], levier = leverage[top],
+      residu_standardise = residual[top],
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+influence_sensitivity <- function(model, data, top_n = 20L) {
+  cooks <- stats::cooks.distance(model)
+  selected <- head(order(cooks, decreasing = TRUE), top_n)
+  extract <- function(object, specification) {
+    result <- tidy_econometric_coefficients(object)
+    result$specification <- specification
+    result[, c("specification", "term", "odds_ratio", "p.value")]
+  }
+  refits <- lapply(seq_along(selected), function(i) {
+    sensitivity <- stats::glm(
+      formula = stats::formula(model), data = data[-selected[[i]], , drop = FALSE],
+      family = stats::binomial(link = "logit")
+    )
+    extract(sensitivity, paste0("Retrait individuel rang Cook ", i))
+  })
+  all_results <- do.call(rbind, c(list(extract(model, "Modele principal")), refits))
+  principal <- all_results[all_results$specification == "Modele principal", c("term", "odds_ratio", "p.value")]
+  names(principal)[2:3] <- c("odds_ratio_principal", "p_value_principale")
+  alternatives <- all_results[all_results$specification != "Modele principal", ]
+  ranges <- data.table::as.data.table(alternatives)[, .(
+    odds_ratio_min = min(odds_ratio), odds_ratio_max = max(odds_ratio),
+    p_value_min = min(p.value), p_value_max = max(p.value),
+    reestimations = .N
+  ), by = term]
+  merge(principal, as.data.frame(ranges), by = "term", sort = FALSE)
+}
+
 numeric_vif <- function(data, variables) {
   x <- data[, variables, drop = FALSE]
   do.call(rbind, lapply(variables, function(variable) {
@@ -138,19 +217,28 @@ run_econometric_analysis <- function(panel_data = NULL, root = here::here()) {
   data <- prepare_econometric_data(panel)
   models <- fit_econometric_models(data)
   coefficients <- tidy_econometric_coefficients(models$principal)
+  clustered <- clustered_logit_coefficients(models$principal, data$code_departement)
   vif <- numeric_vif(data, c("log_etp", "anciennete_moins_2_10pp", "age_50_plus_10pp", "femmes_10pp"))
   diagnostics <- econometric_diagnostics(models, data)
+  influence <- influence_diagnostics(models$principal, data)
+  sensitivity <- influence_sensitivity(models$principal, data)
   calibration <- calibration_table(models$principal)
   robustness <- robustness_table(models)
   output <- file.path(root, "outputs", "tables", "econometrics"); fs::dir_create(output)
   write_utf8_csv(econometric_framework(), file.path(output, "cadre_econometrique.csv"))
   write_utf8_csv(coefficients, file.path(output, "coefficients_logit.csv"))
+  write_utf8_csv(clustered, file.path(output, "coefficients_logit_cluster_departement.csv"))
   write_utf8_csv(vif, file.path(output, "multicolinearite_vif.csv"))
   write_utf8_csv(diagnostics, file.path(output, "diagnostics.csv"))
+  write_utf8_csv(influence$summary, file.path(output, "diagnostic_influence.csv"))
+  write_utf8_csv(influence$top, file.path(output, "observations_influentes_top20.csv"))
+  write_utf8_csv(sensitivity, file.path(output, "sensibilite_influence.csv"))
   write_utf8_csv(calibration, file.path(output, "calibration.csv"))
   write_utf8_csv(robustness, file.path(output, "robustesse.csv"))
   write_utf8_csv(econometric_limits(), file.path(output, "limites.csv"))
   saveRDS(models, file.path(output, "modeles.rds"))
-  list(framework = econometric_framework(), n = nrow(data), coefficients = coefficients, vif = vif,
-    diagnostics = diagnostics, calibration = calibration, robustness = robustness, limits = econometric_limits())
+  list(framework = econometric_framework(), n = nrow(data), coefficients = coefficients,
+    coefficients_clustered = clustered, vif = vif, diagnostics = diagnostics,
+    influence = influence, sensitivity = sensitivity, calibration = calibration,
+    robustness = robustness, limits = econometric_limits())
 }

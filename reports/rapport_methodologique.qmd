@@ -46,7 +46,10 @@ faisabilite_trajectoires <- read_artifact("outputs", "tables", "trajectories", "
 territoires <- read_artifact("outputs", "tables", "territorial", "effets_composition_territoriale.csv")
 validation_territoriale <- read_artifact("outputs", "tables", "territorial", "validation_territoriale.csv")
 coefficients <- read_artifact("outputs", "tables", "econometrics", "coefficients_logit.csv")
+coefficients_clustered <- read_artifact("outputs", "tables", "econometrics", "coefficients_logit_cluster_departement.csv")
 diagnostics <- read_artifact("outputs", "tables", "econometrics", "diagnostics.csv")
+influence <- read_artifact("outputs", "tables", "econometrics", "diagnostic_influence.csv")
+sensibilite_influence <- read_artifact("outputs", "tables", "econometrics", "sensibilite_influence.csv")
 survie <- read_artifact("outputs", "tables", "survival", "audit_faisabilite.csv")
 ml <- read_artifact("outputs", "tables", "modeling", "audit_faisabilite.csv")
 evaluation <- read_artifact("outputs", "tables", "evaluation", "statut_evaluation.csv")
@@ -231,11 +234,40 @@ coefficients |>
   show_table("Régression logistique", "Coefficients, odds ratios et intervalles de confiance de Wald à 95 %")
 ```
 
+Les erreurs standards classiques sont complétées par une estimation regroupée
+au niveau département, afin de tenir compte d'une dépendance possible entre UAI
+d'un même territoire.
+
+```{r}
+#| label: coefficients-groupes
+coefficients_clustered |>
+  select(term, estimate, std.error_cluster_departement, p.value, odds_ratio,
+    or_ic95_basse, or_ic95_haute, groupes) |>
+  mutate(across(where(is.numeric), ~ signif(.x, 4))) |>
+  show_table("Robustesse territoriale", "Erreurs standards regroupées par département")
+```
+
 ```{r}
 #| label: diagnostics
 diagnostics |>
   mutate(RESULTAT = signif(RESULTAT, 4)) |>
   show_table("Diagnostics économétriques")
+```
+
+```{r}
+#| label: influence
+influence |>
+  mutate(RESULTAT = signif(RESULTAT, 4)) |>
+  show_table("Diagnostic d'influence", "Aucune observation n'est retirée silencieusement")
+```
+
+```{r}
+#| label: sensibilite-influence
+sensibilite_influence |>
+  filter(term != "(Intercept)") |>
+  mutate(across(where(is.numeric), ~ signif(.x, 4))) |>
+  show_table("Sensibilité aux observations influentes",
+    "Étendue des estimations après retrait individuel des 20 observations les plus influentes")
 ```
 
 « Toutes choses égales par ailleurs » signifie seulement que les variables incluses sont maintenues constantes dans la spécification. Cela ne contrôle ni les variables omises ni les mécanismes de sélection et ne fonde aucune causalité.

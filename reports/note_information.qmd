@@ -32,6 +32,7 @@ mobilite <- read_result("outputs", "tables", "descriptive", "mobilite_resume.csv
 sequences <- read_result("outputs", "tables", "trajectories", "profils_sequences_presence.csv")
 territoires <- read_result("outputs", "tables", "territorial", "effets_composition_territoriale.csv")
 coefficients <- read_result("outputs", "tables", "econometrics", "coefficients_logit.csv")
+coefficients_clustered <- read_result("outputs", "tables", "econometrics", "coefficients_logit_cluster_departement.csv")
 diagnostics <- read_result("outputs", "tables", "econometrics", "diagnostics.csv")
 
 fmt_number <- function(x, digits = 0) format(round(x, digits), big.mark = " ", decimal.mark = ",", nsmall = digits)
@@ -133,7 +134,7 @@ Une régression logistique exploratoire étudie l'**absence d'une UAI dans le fi
 
 ```{r}
 #| label: modele
-model_display <- subset(coefficients, term != "(Intercept)",
+model_display <- subset(coefficients_clustered, term != "(Intercept)",
   select = c(term, odds_ratio, or_ic95_basse, or_ic95_haute, p.value))
 model_display$term <- c("Taille : log(1 + ETP)", "Ancienneté < 2 ans (+10 points)",
   "Âge 50 ans ou plus (+10 points)", "Femmes (+10 points)", "Secteur public")
@@ -143,12 +144,12 @@ model_display |>
   select(Variable = term, `Odds ratio`, `IC95 %`, `p-value`) |>
   gt() |>
   tab_header(title = "Associations conditionnelles avec l'absence de l'UAI en 2025",
-    subtitle = "Régression logistique; les parts sont exprimées par hausse de 10 points")
+    subtitle = "Régression logistique; IC95 % avec erreurs standards regroupées par département")
 ```
 
-La part d'ETP ayant moins de deux ans d'ancienneté n'est pas associée statistiquement à l'issue dans ce modèle : odds ratio `r fmt_number(coefficients$odds_ratio[coefficients$term == "anciennete_moins_2_10pp"], 2)`, IC95 % [`r fmt_number(coefficients$or_ic95_basse[coefficients$term == "anciennete_moins_2_10pp"], 2)`; `r fmt_number(coefficients$or_ic95_haute[coefficients$term == "anciennete_moins_2_10pp"], 2)`]. Il en va de même pour les parts âgées de 50 ans ou plus et de femmes, dont les intervalles de confiance incluent 1.
+La part d'ETP ayant moins de deux ans d'ancienneté n'est pas associée statistiquement à l'issue dans ce modèle : odds ratio `r fmt_number(coefficients_clustered$odds_ratio[coefficients_clustered$term == "anciennete_moins_2_10pp"], 2)`, IC95 % [`r fmt_number(coefficients_clustered$or_ic95_basse[coefficients_clustered$term == "anciennete_moins_2_10pp"], 2)`; `r fmt_number(coefficients_clustered$or_ic95_haute[coefficients_clustered$term == "anciennete_moins_2_10pp"], 2)`]. Il en va de même pour les parts âgées de 50 ans ou plus et de femmes, dont les intervalles de confiance incluent 1.
 
-Le secteur public présente des odds plus élevées d'absence du fichier que le privé sous contrat dans cette spécification (OR `r fmt_number(coefficients$odds_ratio[coefficients$term == "secteurPUBLIC"], 2)`, IC95 % [`r fmt_number(coefficients$or_ic95_basse[coefficients$term == "secteurPUBLIC"], 2)`; `r fmt_number(coefficients$or_ic95_haute[coefficients$term == "secteurPUBLIC"], 2)`]). L'événement étant rare et sa nature administrative incertaine, ce résultat ne doit pas être interprété comme un effet du secteur sur la mobilité ou la fermeture.
+Le secteur public présente des odds plus élevées d'absence du fichier que le privé sous contrat dans cette spécification (OR `r fmt_number(coefficients_clustered$odds_ratio[coefficients_clustered$term == "secteurPUBLIC"], 2)`, IC95 % [`r fmt_number(coefficients_clustered$or_ic95_basse[coefficients_clustered$term == "secteurPUBLIC"], 2)`; `r fmt_number(coefficients_clustered$or_ic95_haute[coefficients_clustered$term == "secteurPUBLIC"], 2)`]). L'événement étant rare et sa nature administrative incertaine, ce résultat ne doit pas être interprété comme un effet du secteur sur la mobilité ou la fermeture.
 
 Ici, « toutes choses égales par ailleurs » signifie seulement que les autres variables incluses sont maintenues constantes. Cette expression ne transforme pas l'association en relation causale.
 
