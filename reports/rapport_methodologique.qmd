@@ -1,0 +1,358 @@
+---
+title: "Rapport méthodologique"
+subtitle: "Observatoire des parcours et mobilités des personnels"
+author: "Projet DEPP A5 — Mobilité des personnels"
+date: last-modified
+lang: fr
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: initialisation
+library(dplyr)
+library(gt)
+library(targets)
+
+root <- here::here()
+read_artifact <- function(...) {
+  path <- file.path(root, ...)
+  if (!file.exists(path)) stop("Artefact requis absent : ", path, call. = FALSE)
+  utils::read.csv2(path, dec = ".", stringsAsFactors = FALSE, check.names = FALSE, fileEncoding = "UTF-8")
+}
+show_table <- function(data, title, subtitle = NULL) {
+  gt(data) |> tab_header(title = title, subtitle = subtitle)
+}
+
+sources_config <- yaml::read_yaml(file.path(root, "config", "data_sources.yml"))
+sources <- do.call(rbind, lapply(sources_config$sources, function(x) data.frame(
+  id = x$id, organisme = x$producer, jeu = x$dataset, millesime = x$vintage,
+  format = x$format, licence = x$license, url = x$landing_url, stringsAsFactors = FALSE)))
+imports <- read_artifact("data", "interim", "import_summary.csv")
+quality <- read_artifact("outputs", "tables", "diagnostic_qualite.csv")
+effectifs <- read_artifact("outputs", "tables", "descriptive", "effectifs.csv")
+age <- read_artifact("outputs", "tables", "descriptive", "age.csv")
+anciennete <- read_artifact("outputs", "tables", "descriptive", "anciennete.csv")
+trajectoires <- read_artifact("outputs", "tables", "trajectories", "profils_sequences_presence.csv")
+faisabilite_trajectoires <- read_artifact("outputs", "tables", "trajectories", "faisabilite_trajectoires_professionnelles.csv")
+territoires <- read_artifact("outputs", "tables", "territorial", "effets_composition_territoriale.csv")
+validation_territoriale <- read_artifact("outputs", "tables", "territorial", "validation_territoriale.csv")
+coefficients <- read_artifact("outputs", "tables", "econometrics", "coefficients_logit.csv")
+diagnostics <- read_artifact("outputs", "tables", "econometrics", "diagnostics.csv")
+survie <- read_artifact("outputs", "tables", "survival", "audit_faisabilite.csv")
+ml <- read_artifact("outputs", "tables", "modeling", "audit_faisabilite.csv")
+evaluation <- read_artifact("outputs", "tables", "evaluation", "statut_evaluation.csv")
+explicabilite <- read_artifact("outputs", "tables", "explainability", "registre_sorties.csv")
+target_meta <- tar_meta(fields = c(name, seconds, bytes, error, warnings), store = here::here("_targets"))
+```
+
+::: {.callout-note}
+## Objet du document
+
+Ce rapport décrit les données, traitements, contrôles, méthodes, résultats et limites du projet dans une forme destinée à la revue par un statisticien tiers. Il distingue systématiquement ce qui est **observé**, ce qui est **calculable**, ce qui est **associatif** et ce qui demeure **non identifiable** avec les données ouvertes.
+:::
+
+## Contexte
+
+Le projet étudie les parcours et mobilités des personnels enseignants à partir de sources publiques officielles. Il constitue un démonstrateur reproductible de statistique publique : les données brutes sont conservées, la provenance est tracée, les transformations sont codées, les contrôles sont automatisés et les résultats sont produits par un pipeline `targets`.
+
+La DEPP dispose de données administratives individuelles longitudinales, notamment le panel issu de la Base statistique des agents. Ces microdonnées ne sont pas librement téléchargeables. Les données ouvertes acquises ici décrivent principalement des agrégats d'ETP au niveau établissement–année.
+
+## Problématique
+
+La question générale est : **quels facteurs individuels, professionnels, territoriaux et organisationnels sont associés aux mobilités des personnels enseignants, et comment décrire leurs trajectoires dans le temps ?**
+
+Cette question appelle quatre registres qui ne sont pas interchangeables :
+
+1. description des effectifs, profils et disparités ;
+2. suivi longitudinal des états et transitions ;
+3. estimation d'associations conditionnelles ;
+4. prédiction hors échantillon d'une mobilité future.
+
+Les données ouvertes permettent le premier registre et certaines associations au niveau établissement. Elles ne permettent pas d'observer les trajectoires ou mobilités individuelles.
+
+## Sources
+
+```{r}
+#| label: sources
+sources |>
+  select(id, organisme, jeu, millesime, format, licence) |>
+  show_table("Sources acquises et configurées")
+```
+
+Les URL de diffusion et de téléchargement sont centralisées dans [`config/data_sources.yml`](../config/data_sources.yml). Ce fichier constitue la source de vérité pour l'import : identifiant, producteur, millésime, licence, format, encodage, séparateur, volume minimal et colonnes requises.
+
+```{r}
+#| label: imports
+imports |>
+  select(source_id, vintage, rows, columns, sha256, status) |>
+  show_table("Manifeste d'import", "Les empreintes SHA-256 permettent de vérifier l'identité des fichiers bruts")
+```
+
+Les journaux horodatés sont conservés dans `outputs/logs/`. Les fichiers bruts et intermédiaires sont exclus de Git, contrairement au code, à la configuration et aux rapports.
+
+## Champ
+
+Le champ analytique principal couvre les établissements scolaires présents dans les jeux DEPP d'indicateurs de personnels :
+
+- premier degré, rentrées 2024 et 2025 ;
+- second degré, rentrée 2024 ;
+- mouvement interdépartemental du premier degré public, année 2019 ;
+- annuaire de l'éducation, photographie du 22 septembre 2026 ;
+- IPS des écoles, collèges et lycées selon les millésimes configurés.
+
+Les champs diffèrent selon les sources. Les résultats ne sont agrégés ou rapprochés qu'après vérification des unités, périodes et clés.
+
+## Population
+
+L'unité dominante est l'**établissement × année**, identifié par le code UAI. Les variables de personnel sont des équivalents temps plein agrégés. Le code UAI n'identifie pas un enseignant.
+
+La population d'une analyse dépend du résultat présenté : établissements couverts par un jeu, UAI appariées à l'annuaire, ou départements présents dans le fichier du mouvement. Aucun résultat n'est généralisé silencieusement à l'ensemble des personnels lorsque l'unité observée est l'établissement.
+
+## Qualité
+
+Le diagnostic est exécuté avant le nettoyage. Il porte sur les dimensions, clés, doublons, types, valeurs manquantes, modalités, valeurs aberrantes, cohérences temporelles et géographiques, nomenclatures, ruptures de série et cohérences inter-variables.
+
+```{r}
+#| label: qualite
+quality |>
+  show_table("Diagnostic qualité avant nettoyage")
+```
+
+Une anomalie n'est jamais corrigée silencieusement. Les valeurs soumises au secret statistique restent manquantes; elles ne sont ni remplacées par zéro ni imputées comme des observations réelles.
+
+## Préparation
+
+La préparation suit les étapes suivantes :
+
+1. téléchargement depuis l'URL officielle configurée ;
+2. conservation immuable du fichier raw ;
+3. contrôle du format, de l'encodage, du volume et des colonnes ;
+4. empreinte SHA-256, date, millésime et journal d'import ;
+5. normalisation des noms, types, dates et codes ;
+6. harmonisation des années, départements, académies et régions ;
+7. conservation des valeurs manquantes documentées ;
+8. enregistrement séparé des données intermédiaires, nettoyées et enrichies.
+
+Les transformations sont implémentées dans [`R/cleaning.R`](../R/cleaning.R), les variables dérivées dans [`R/features.R`](../R/features.R), et la stratégie de panel dans [`R/panel.R`](../R/panel.R).
+
+## Variables
+
+| Famille | Variables construites ou utilisées | Unité / limite |
+|---|---|---|
+| Effectif | ETP enseignants, nombre d'UAI | Agrégat établissement |
+| Sexe | part d'ETP de femmes | Dénominateur observé propre à la variable |
+| Âge | moins de 35 ans, 35–49 ans, 50 ans ou plus | Classes agrégées, pas d'âge individuel |
+| Ancienneté | moins de 2 ans, 2–4 ans, 5–7 ans, 8 ans ou plus | Ancienneté dans l'établissement, pas dans la carrière |
+| Territoire | département, académie, région | Codes issus de la source et harmonisés |
+| Éducation prioritaire | REP ou REP+ | Snapshot annuaire 2026, pas statut historique garanti |
+| Mouvement | trois ratios départementaux | Année 2019, sans effectifs bruts ni flux individuels |
+| Présence | observé, apparition, disparition du fichier | Ne constitue pas une entrée ou sortie de personnel |
+
+Chaque proportion agrégée est calculée comme somme des numérateurs divisée par somme des dénominateurs observés. La couverture en ETP est conservée séparément.
+
+## Méthodes
+
+| Registre | Méthode | Objet réellement estimé | Statut |
+|---|---|---|---|
+| Descriptif | agrégations pondérées, évolutions, distributions | ETP et compositions établissement/territoire | Réalisé |
+| Trajectoires | séquences de présence UAI | présence dans deux fichiers annuels | Alternative descriptive |
+| Territorial | proportions, cartes `sf`, effets de composition | disparités agrégées | Réalisé |
+| Économétrie | `glm(..., family = binomial)` | absence d'une UAI en 2025 | Associatif |
+| Survie | `Surv`, Kaplan–Meier, Cox | temps individuel avant mobilité | Non identifiable |
+| Machine Learning | tidymodels et validation temporelle | mobilité individuelle à t+1 | Non entraîné |
+| Explicabilité | permutation, PDP, SHAP | explication d'un modèle prédictif final | Non calculable sans modèle |
+
+## Descriptif
+
+```{r}
+#| label: effectifs
+effectifs |>
+  mutate(taux_variation_etp = scales::percent(taux_variation_etp, accuracy = .1)) |>
+  show_table("Effectifs préparés", "ETP et établissements selon l'année et le degré")
+```
+
+Les profils d'âge et d'ancienneté sont présentés en proportions d'ETP. Les effectifs bruts ne sont pas assimilés à des taux et aucune différence descriptive n'est interprétée causalement.
+
+## Trajectoires
+
+```{r}
+#| label: trajectoires
+trajectoires |>
+  show_table("Séquences alternatives de présence des établissements")
+```
+
+```{r}
+#| label: faisabilite-trajectoires
+faisabilite_trajectoires |>
+  select(OBJET, DISPONIBILITE, DECISION, JUSTIFICATION) |>
+  show_table("Faisabilité des trajectoires professionnelles")
+```
+
+Avec seulement deux millésimes et aucun identifiant personnel, les séquences `Stable → Mobilité → Stable` ne sont pas observables. Une disparition d'UAI du fichier peut provenir d'un changement de champ, d'une fermeture, d'une modification d'identifiant ou d'un problème de couverture; elle n'est jamais qualifiée de sortie de personnel.
+
+## Territoires
+
+Les niveaux réellement disponibles sont le département, l'académie et la région. Les cartes départementales utilisent les géométries officielles du fichier du mouvement 2019 et les indicateurs de personnel 2025.
+
+```{r}
+#| label: composition-territoriale
+territoires |>
+  mutate(across(c(moyenne_nationale_ponderee_etp, moyenne_simple_departements, ecart_composition,
+    ecart_type_interdepartemental, q1, q3), ~ round(.x, 4))) |>
+  show_table("Effets descriptifs de composition territoriale")
+```
+
+```{r}
+#| label: validation-territoriale
+validation_territoriale |>
+  show_table("Validation territoriale")
+```
+
+L'écart de composition compare la moyenne nationale pondérée par les ETP à la moyenne simple des départements. Il ne mesure pas un effet causal du territoire.
+
+## Économétrie
+
+La régression logistique porte sur les établissements observés en 2024. L'issue vaut 1 lorsque l'UAI est absente du fichier 2025. Elle ne mesure pas une mobilité individuelle. Les variables explicatives sont mesurées en 2024 : taille en ETP, composition par ancienneté, âge, sexe et secteur.
+
+```{r}
+#| label: coefficients
+coefficients |>
+  select(term, estimate, std.error, p.value, odds_ratio, or_ic95_basse, or_ic95_haute) |>
+  mutate(across(where(is.numeric), ~ signif(.x, 4))) |>
+  show_table("Régression logistique", "Coefficients, odds ratios et intervalles de confiance de Wald à 95 %")
+```
+
+```{r}
+#| label: diagnostics
+diagnostics |>
+  mutate(RESULTAT = signif(RESULTAT, 4)) |>
+  show_table("Diagnostics économétriques")
+```
+
+« Toutes choses égales par ailleurs » signifie seulement que les variables incluses sont maintenues constantes dans la spécification. Cela ne contrôle ni les variables omises ni les mécanismes de sélection et ne fonde aucune causalité.
+
+## Survie
+
+```{r}
+#| label: survie
+survie |>
+  show_table("Audit de faisabilité de l'analyse de survie")
+```
+
+Le temps avant une mobilité exigerait un identifiant personnel, une origine temporelle individuelle, une date d'événement ou de censure, un événement de mobilité vérifié et une profondeur temporelle suffisante. Toutes ces conditions sont bloquantes dans l'open data. Les fonctions `Surv()`, `survfit()`, `coxph()` et `cox.zph()` sont codées et testées techniquement, mais aucun résultat empirique n'est produit.
+
+## Machine Learning
+
+```{r}
+#| label: machine-learning
+ml |>
+  show_table("Audit de faisabilité du Machine Learning")
+```
+
+Le pipeline conditionnel prévoit une régression logistique pénalisée, une forêt aléatoire et un gradient boosting, avec `recipe`, folds temporels croissants, tuning par PR-AUC et test final réservé. Une seule transition 2024→2025 ne permet pas de séparer apprentissage, réglage et test. Aucun modèle n'est entraîné et aucune performance n'est fabriquée.
+
+## Validation
+
+```{r}
+#| label: evaluation
+evaluation |>
+  show_table("Statut de l'évaluation prédictive")
+```
+
+Le module d'évaluation prévoit ROC-AUC, PR-AUC, précision, recall, F1, sensibilité, spécificité, matrice de confusion, score de Brier, ECE, stabilité entre périodes et généralisation. L'accuracy n'est jamais utilisée seule. Aucun modèle complexe n'est sélectionné automatiquement sur le maximum d'une métrique.
+
+Les tests unitaires couvrent les imports, la qualité, le nettoyage, les variables, le panel, les descriptions, les trajectoires, les territoires, l'économétrie, la survie, le ML, l'évaluation, l'explicabilité et le dashboard.
+
+## Explicabilité
+
+```{r}
+#| label: explicabilite
+explicabilite |>
+  show_table("Registre des sorties d'explicabilité")
+```
+
+Le module prévoit l'importance globale et par permutation avec `vip` et `DALEX`, les profils de dépendance partielle et les contributions SHAP via `DALEX`. Aucun objet n'est calculé sans modèle prédictif final. La comparaison avec l'économétrie exige une population, une issue, une période et des transformations communes, conditions non satisfaites ici.
+
+**Importance prédictive ≠ association statistique ≠ causalité.**
+
+## Limites
+
+Les limites structurantes sont :
+
+- absence d'identifiant personnel stable dans les données ouvertes ;
+- deux années seulement dans le premier degré et une dans le second degré ;
+- variables diffusées sous forme d'ETP agrégés ;
+- masquage lié au secret statistique ;
+- ancienneté limitée à l'établissement ;
+- mouvement interdépartemental disponible uniquement sous forme de ratios départementaux pour 2019 ;
+- statut d'éducation prioritaire issu d'un snapshot 2026 ;
+- risque d'erreur écologique lors de toute interprétation des agrégats ;
+- absence de stratégie d'identification causale ;
+- impossibilité de valider un modèle individuel de survie ou de prédiction.
+
+## Reproductibilité
+
+La racine du projet est déterminée par `here`; aucun chemin absolu n'est utilisé par le code analytique. Les dépendances sont verrouillées par `renv.lock`, les calculs orchestrés par `_targets.R`, les tests placés dans `tests/testthat/` et les documents rendus par Quarto.
+
+Depuis une copie du dépôt :
+
+```{r}
+#| eval: false
+renv::restore()
+targets::tar_make()
+testthat::test_dir("tests/testthat", reporter = "summary")
+```
+
+Puis, dans le terminal :
+
+```{.powershell}
+quarto render reports/rapport_methodologique.qmd
+Rscript -e "shiny::runApp('dashboard')"
+```
+
+Ordre d'audit recommandé :
+
+1. vérifier `config/data_sources.yml` et les licences ;
+2. comparer les empreintes de `data/interim/import_summary.csv` ;
+3. lire les journaux `outputs/logs/` ;
+4. examiner `outputs/tables/diagnostic_qualite.csv` avant les données nettoyées ;
+5. consulter les fonctions `R/` et leurs tests correspondants ;
+6. vérifier les métadonnées du pipeline ;
+7. rendre les notebooks puis le présent rapport.
+
+```{r}
+#| label: cibles
+target_meta |>
+  mutate(across(c(seconds, bytes), ~ round(.x, 2))) |>
+  show_table("Métadonnées du dernier pipeline targets")
+```
+
+```{r}
+#| label: environnement
+packages <- c("targets", "renv", "quarto", "testthat", "dplyr", "ggplot2", "sf", "shiny", "tidymodels")
+git_commit <- suppressWarnings(tryCatch(system2("git", c("rev-parse", "HEAD"), stdout = TRUE, stderr = FALSE),
+  error = function(e) character()))
+if (length(git_commit) != 1L) git_commit <- "indisponible dans le processus de rendu"
+versions <- data.frame(
+  composant = c("R", packages, "Git commit"),
+  version = c(R.version.string,
+    vapply(packages, function(package) if (requireNamespace(package, quietly = TRUE)) as.character(packageVersion(package)) else "non installe", character(1)),
+    git_commit))
+versions |>
+  show_table("Environnement de reproduction")
+```
+
+## Conclusion
+
+Le projet fournit une analyse descriptive, territoriale et associative reproductible des données ouvertes disponibles. Il documente sans ambiguïté que celles-ci ne constituent pas un panel individuel de personnels. Les trajectoires professionnelles, le temps avant mobilité, la prédiction à `t+1` et son explicabilité nécessitent le panel interne sécurisé de la DEPP ou une source individuelle longitudinale équivalente.
+
+Le principal résultat méthodologique est donc double : les agrégats ouverts permettent d'étudier les structures et disparités observées, mais ils ne permettent pas de transformer une variation d'établissement en trajectoire personnelle. Cette frontière est contrôlée dans le code, les tests, le pipeline et les documents de diffusion.
