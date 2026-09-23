@@ -4,12 +4,6 @@
 
 Ce projet étudie les effectifs, les profils et les disparités territoriales des personnels enseignants. Il montre aussi, de façon explicite et auditée, ce que les données ouvertes permettent — et ne permettent pas — d’établir sur les mobilités et les trajectoires professionnelles.
 
-## Auteur
-
-**Cédric MADJEKI-MA-MOUSSAVOU BIGNOUMBA**
-
-Compte GitHub : [cmadjeki-dot](https://github.com/cmadjeki-dot). Projet personnel de démonstration méthodologique, sans affiliation institutionnelle revendiquée.
-
 ## Présentation
 
 - [Site de présentation du projet](https://cmadjeki-dot.github.io/DEPP_A5_Mobilite_Personnels/)
@@ -140,6 +134,14 @@ L’application [`dashboard/app.R`](dashboard/app.R) comporte sept onglets : Vue
 shiny::runApp("dashboard")
 ~~~
 
+Le déploiement public sur shinyapps.io est automatisé par [`dashboard/deploy.R`](dashboard/deploy.R). Après avoir enregistré les trois variables `SHINYAPPS_ACCOUNT`, `SHINYAPPS_TOKEN` et `SHINYAPPS_SECRET` dans le fichier local `.Renviron`, exécuter :
+
+~~~r
+source("dashboard/deploy.R")
+~~~
+
+Le script publie uniquement l’application et ses résultats préparés. Les données brutes et les identifiants ne sont pas envoyés.
+
 ## Rapports
 
 - [Note d’information synthétique](docs/reports/note_information.html)
@@ -215,3 +217,9 @@ Le projet ne prétend donc pas mesurer des trajectoires individuelles, estimer u
 ---
 
 Projet démonstrateur : les interprétations reposent uniquement sur les données ouvertes acquises et les résultats reproductibles du dépôt.
+
+## Auteur
+
+**Cédric MADJEKI-MA-MOUSSAVOU BIGNOUMBA**
+
+Compte GitHub : [cmadjeki-dot](https://github.com/cmadjeki-dot). Projet personnel de démonstration méthodologique, sans affiliation institutionnelle revendiquée.
