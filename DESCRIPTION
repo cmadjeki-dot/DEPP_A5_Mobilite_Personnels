@@ -33,6 +33,8 @@ Imports:
     visNetwork,
     vip,
     ranger,
+    rprojroot,
+    withr,
     xgboost,
     yaml
 Config/testthat/edition: 3
