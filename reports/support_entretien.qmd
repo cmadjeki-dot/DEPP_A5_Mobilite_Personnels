@@ -1,0 +1,273 @@
+---
+title: "Support d'entretien — Parcours et mobilité des personnels enseignants"
+subtitle: "Démonstrateur DEPP A5"
+author: "Cédric MADJEKI-MA-MOUSSAVOU BIGNOUMBA"
+lang: fr
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+execute:
+  echo: false
+---
+
+# Positionnement à retenir
+
+Ce projet est un **démonstrateur méthodologique reproductible fondé sur des données ouvertes officielles**. Il décrit des effectifs, des profils et des disparités territoriales au niveau agrégé. Il audite aussi la faisabilité d'un véritable suivi des mobilités. Il ne prétend pas reconstituer des trajectoires individuelles que les sources publiques ne permettent pas d'observer.
+
+La bonne formule en entretien est : « J'ai préféré documenter précisément ce qui n'était pas identifiable plutôt que de produire un résultat séduisant mais statistiquement faux. »
+
+# Pitch de 30 secondes
+
+J'ai construit un démonstrateur reproductible consacré aux parcours et aux mobilités des personnels enseignants. À partir de données ouvertes de la DEPP et du ministère, j'ai industrialisé toute la chaîne : import traçable, contrôle qualité, préparation, analyses descriptive, territoriale et économétrique, restitution Quarto et dashboard Shiny. Le résultat essentiel est double : on peut produire des indicateurs robustes au niveau établissement, mais on ne peut pas mesurer une mobilité individuelle sans identifiant longitudinal. Le projet montre donc à la fois ma capacité technique et mon exigence de statistique publique.
+
+# Pitch de 2 minutes
+
+J'ai choisi la mobilité des personnels enseignants parce qu'elle se situe au croisement du pilotage des ressources humaines, de l'attractivité territoriale et de la continuité du service public. Mon objectif était de construire un projet proche d'une production professionnelle de la DEPP, depuis la recherche des sources jusqu'à la publication.
+
+J'ai commencé par auditer les données ouvertes disponibles. Les principales sources décrivent les personnels en équivalents temps plein au niveau établissement et, pour le mouvement du premier degré, certains ratios départementaux. Elles ne contiennent pas d'identifiant individuel stable. Cette distinction de granularité a structuré tout le projet.
+
+J'ai ensuite construit un pipeline R reproductible avec `targets` et `renv`. Les données brutes sont préservées, la provenance et les empreintes sont enregistrées, les anomalies sont diagnostiquées avant nettoyage, et des tests couvrent les clés, types, bornes, nomenclatures, transitions et sorties principales. Les résultats sont restitués dans des notebooks Quarto, une note synthétique, un rapport méthodologique et un dashboard Shiny qui consomme des résultats déjà préparés.
+
+Les données montrent notamment 314 691,5 ETP enseignants du premier degré en 2025, soit une baisse de 0,7 % par rapport à 2024. Parmi les ETP renseignés, 35,2 % ont 50 ans ou plus et 27,0 % ont moins de deux ans d'ancienneté dans l'établissement. La présence de 98,7 % des UAI dans les deux millésimes est un résultat sur les établissements, pas une stabilité individuelle.
+
+J'ai estimé une régression logistique exploratoire sur l'absence d'une UAI du fichier suivant, en indiquant clairement que cette issue n'est ni une fermeture attestée ni une mobilité. En revanche, je n'ai publié ni modèle de survie ni modèle prédictif de mobilité individuelle : les données ne permettent pas de définir correctement l'événement. Avec les données internes sécurisées de la DEPP, la même architecture pourrait accueillir un panel personnel × année, des modèles de durée et une validation prédictive temporelle.
+
+# Démonstration de 5 minutes
+
+## 0:00–0:40 — Question et périmètre
+
+- Montrer la page d'accueil du projet.
+- Énoncer la problématique en une phrase.
+- Préciser immédiatement l'unité disponible : établissement × année, effectifs en ETP.
+- Annoncer la limite structurante : aucun identifiant individuel public.
+
+## 0:40–1:30 — Sources et qualité
+
+- Ouvrir l'audit des données et montrer la provenance officielle.
+- Expliquer la conservation des fichiers bruts et l'enregistrement des empreintes.
+- Montrer un tableau de contrôle qualité : règle, résultat, seuil, statut, action.
+- Souligner qu'aucune anomalie n'est corrigée silencieusement.
+
+## 1:30–2:35 — Résultats descriptifs
+
+- Montrer l'évolution des ETP : 316 886,5 en 2024 puis 314 691,5 en 2025 dans le premier degré, soit −0,7 %.
+- Montrer la structure d'âge : 35,2 % des ETP renseignés ont 50 ans ou plus en 2025.
+- Montrer l'ancienneté dans l'établissement : 27,0 % ont moins de deux ans et 38,7 % huit ans ou plus parmi les ETP renseignés.
+- Employer « effectif », « proportion » et « variation » avec leur bon dénominateur.
+
+## 2:35–3:25 — Territoire et pseudo-longitudinal
+
+- Montrer une carte départementale en précisant indicateur, dénominateur, champ, année et source.
+- Présenter la matrice de présence des UAI : 46 993 sur 47 591, soit 98,7 %, figurent dans les deux millésimes.
+- Dire explicitement qu'une UAI présente deux années n'est pas une trajectoire de personnel.
+
+## 3:25–4:10 — Modèle exploratoire
+
+- Présenter l'issue : absence d'une UAI dans le fichier 2025 parmi les UAI observées en 2024.
+- Indiquer 27 151 observations complètes et 123 événements.
+- Expliquer odds ratio, IC95 % et erreurs standards robustes regroupées par département.
+- Ne présenter aucune association comme causale et signaler la rareté de l'événement.
+
+## 4:10–5:00 — Industrialisation et conclusion
+
+- Montrer le graphe `targets`, les tests et `renv.lock`.
+- Ouvrir le dashboard et expliquer qu'il lit les artefacts préparés au lieu de recalculer les analyses.
+- Conclure : production agrégée opérationnelle aujourd'hui ; panel individuel, survie et ML possibles demain avec données internes autorisées.
+
+# Présentation technique de 10 minutes
+
+| Temps | Contenu | Preuve à montrer | Message clé |
+|---:|---|---|---|
+| 0:00–1:00 | Besoin métier et problématique | fiche scientifique | Une question utile doit être traduite en unité, population, période et événement observables. |
+| 1:00–2:00 | Audit des sources | registre des sources | La disponibilité d'un fichier ne garantit pas que sa granularité réponde à la question. |
+| 2:00–3:00 | Import et qualité | provenance, logs, diagnostic | Raw immuable, contrôles avant nettoyage, transformations documentées. |
+| 3:00–4:00 | Architecture des données | schéma du pipeline | Séparation sources, raw, interim, processed, tables, figures et restitutions. |
+| 4:00–5:00 | Descriptif et territoire | graphiques et cartes | Toujours annoncer champ, période, unité, source et dénominateur. |
+| 5:00–6:15 | Longitudinal | matrice de présence | Une succession de fichiers agrégés n'est pas un panel de personnes. |
+| 6:15–7:30 | Économétrie | tableau des OR et diagnostics | Modèle associatif exploratoire, issue administrative rare, pas de causalité. |
+| 7:30–8:20 | Survie et ML | audits de faisabilité | Refus méthodologique de fabriquer une cible individuelle. |
+| 8:20–9:20 | Industrialisation | `_targets.R`, tests, `renv.lock` | Dépendances explicites, exécution incrémentale, environnement verrouillé. |
+| 9:20–10:00 | Restitution et suite | dashboard, rapports | Un socle réutilisable pour des données internes sécurisées. |
+
+# Démonstration du dashboard
+
+## Parcours conseillé
+
+1. **Vue générale** : filtrer l'année et le degré ; commenter les ETP, le nombre d'UAI et la variation.
+2. **Profils** : passer de l'âge à l'ancienneté ; rappeler que les proportions portent sur les ETP renseignés.
+3. **Mobilités** : préciser que les ratios départementaux du mouvement 2019 sont agrégés et ne suivent pas les personnes.
+4. **Territoires** : sélectionner un indicateur ; annoncer le dénominateur avant de commenter la carte.
+5. **Trajectoires** : présenter les séquences de présence des UAI comme un diagnostic de fichiers, pas comme des carrières.
+6. **Modélisation** : présenter l'issue exacte et les limites du logit ; montrer les audits de faisabilité ML et survie.
+7. **Méthodologie** : terminer sur les sources, contrôles, définitions et limites.
+
+## Plan de secours
+
+Si l'application publique n'est pas accessible pendant l'entretien, lancer localement `shiny::runApp("dashboard")` et conserver des captures des sept onglets. Ne jamais consacrer le temps de présentation à diagnostiquer un hébergement.
+
+# Architecture
+
+```{mermaid}
+flowchart LR
+  A[Sources officielles] --> B[Import et provenance]
+  B --> C[Raw immuable]
+  C --> D[Diagnostic qualité]
+  D --> E[Nettoyage documenté]
+  E --> F[Features justifiées]
+  F --> G[Panel UAI × année]
+  G --> H[Descriptif]
+  G --> I[Trajectoires de présence]
+  G --> J[Territoire]
+  G --> K[Logit exploratoire]
+  G --> L[Audits survie et ML]
+  H --> M[Tables et figures]
+  I --> M
+  J --> M
+  K --> M
+  L --> M
+  M --> N[Quarto]
+  M --> O[Dashboard Shiny]
+```
+
+`targets` orchestre les dépendances et l'exécution incrémentale. `renv` verrouille les versions de packages. `testthat` contrôle le logiciel et les sorties. Git trace les changements. Quarto et Shiny séparent le calcul des restitutions.
+
+# Principaux résultats à mémoriser
+
+| Résultat | Lecture correcte | À ne pas dire |
+|---|---|---|
+| 314 691,5 ETP du premier degré en 2025 | volume agrégé sur le champ couvert | nombre de personnes |
+| −0,7 % entre 2024 et 2025 | variation d'ETP entre deux fichiers | taux de départ |
+| 35,2 % d'ETP âgés de 50 ans ou plus | proportion parmi les ETP avec âge renseigné | 35,2 % des enseignants partiront bientôt |
+| 27,0 % avec moins de deux ans d'ancienneté dans l'établissement | composition des ETP renseignés | ancienneté de carrière |
+| 98,7 % des UAI dans les deux millésimes | stabilité de présence des établissements dans les fichiers | stabilité des personnels |
+| Logit : 27 151 UAI, 123 événements | association avec une absence du fichier suivant | modèle de mobilité individuelle |
+
+# Limites à présenter spontanément
+
+- absence d'identifiant individuel stable ;
+- données de personnels agrégées en ETP au niveau établissement ;
+- deux millésimes seulement pour le premier degré et un pour le second ;
+- absence de flux individuels origine–destination et de motif de sortie ;
+- ancienneté dans l'établissement différente de l'ancienneté de carrière ;
+- événement économétrique rare et administrativement ambigu ;
+- photographie 2026 pour l'éducation prioritaire et géométries plus anciennes pour certaines cartes ;
+- risques de sélection par cas complets et d'erreur écologique ;
+- aucune stratégie d'identification causale.
+
+# Prolongements avec les données internes DEPP
+
+Avec un accès autorisé et sécurisé, je construirais un panel `personnel × année` à partir d'un identifiant pseudonymisé stable. Je définirais la mobilité avant tout calcul : changement d'établissement, de département, d'académie, de fonction ou sortie du champ, en distinguant les changements administratifs et les sorties apparentes.
+
+Je documenterais les entrées, sorties, années manquantes, changements d'identifiant et censures. Les covariables seraient datées et mesurées avant l'événement. Le descriptif porterait alors sur des taux individuels et des matrices origine–destination. La survie analyserait le temps avant première mobilité ou des événements répétés. Le ML viserait la mobilité entre `t` et `t+1` avec séparation temporelle stricte, calibration, PR-AUC et suivi de dérive. Toute diffusion respecterait le secret statistique, la minimisation, les habilitations et la gouvernance interne.
+
+# Questions techniques probables et réponses préparées
+
+## 1. Pourquoi ce sujet ?
+
+La mobilité touche à l'allocation des ressources humaines, à l'attractivité des territoires et à la continuité du service public. C'est aussi un bon cas pour démontrer qu'une question métier doit être confrontée à la granularité réelle des données. Le projet produit ce qui est possible et rend visibles les besoins de données supplémentaires.
+
+## 2. Comment avez-vous défini la mobilité ?
+
+Conceptuellement, une mobilité est un changement vérifié entre deux dates : établissement, département, académie ou fonction. Une entrée et une sortie sont des événements distincts. Dans l'open data, cette définition n'est pas observable individuellement ; je n'ai donc pas recodé la disparition d'une UAI comme mobilité d'un agent.
+
+## 3. Pourquoi travailler en longitudinal ?
+
+La mobilité est un changement d'état : elle nécessite au moins deux observations ordonnées de la même unité. Le longitudinal permet d'établir la séquence, le délai, les événements répétés et la censure. Une coupe transversale peut décrire des profils, pas une trajectoire.
+
+## 4. Qu'est-ce qu'un panel valide ici ?
+
+Une ligne par personnel et par période, avec un identifiant stable, une clé unique, un ordre temporel explicite et des états comparables. Il faut auditer doublons, trous de suivi, entrées tardives, censure et changements administratifs d'identifiant. Le panel UAI × année du projet est seulement une stratégie alternative agrégée.
+
+## 5. Pourquoi une régression logistique ?
+
+L'issue exploratoire disponible est binaire : UAI présente ou absente du fichier suivant. Le logit garantit des probabilités prédites entre 0 et 1 et permet une lecture en odds ratios. Son emploi ne résout ni la rareté de l'événement, ni la sélection, ni l'absence d'identification causale.
+
+## 6. Comment interprétez-vous un odds ratio ?
+
+À covariables incluses maintenues constantes, un OR supérieur à 1 correspond à des odds plus élevées de l'issue. Ce n'est pas automatiquement un risque relatif, surtout si l'événement n'est pas rare, et ce n'est jamais à lui seul un effet causal. Je donne systématiquement l'unité de variation et l'IC95 %.
+
+## 7. Quels diagnostics économétriques avez-vous réalisés ?
+
+J'ai examiné multicolinéarité, spécifications alternatives, interactions justifiées, robustesse, influence et erreurs standards regroupées par département. Le faible nombre d'événements et les observations influentes imposent une lecture exploratoire. Une robustesse numérique ne répare pas une issue conceptuellement imparfaite.
+
+## 8. Pourquoi une analyse de survie ?
+
+Parce que la question « combien de temps avant une mobilité ? » combine durée, événement et censure. Kaplan–Meier estime la probabilité de ne pas encore avoir connu l'événement ; Cox compare des hazards conditionnels. Ici, l'origine, l'événement individuel et la censure ne sont pas observables, donc aucun résultat empirique de survie n'est publié.
+
+## 9. Que signifie l'hypothèse des risques proportionnels ?
+
+Dans un modèle de Cox, le rapport des hazards entre deux profils est supposé constant dans le temps. Je la testerais avec les résidus de Schoenfeld via `cox.zph()`, globalement et par covariable. En cas de rejet : effet dépendant du temps, stratification ou modèle alternatif.
+
+## 10. Pourquoi ajouter du Machine Learning ?
+
+L'économétrie répond surtout à une question d'association paramétrée ; le ML évalue la capacité prédictive hors échantillon et peut capter non-linéarités et interactions. Il n'est justifié que si la cible, le temps d'observation et la validation sont correctement définis. Aucun modèle n'a été entraîné sur une fausse cible de mobilité.
+
+## 11. Comment avez-vous évité les fuites de données ?
+
+Le plan prévoit une ligne personnel–année à `t`, des prédicteurs connus au plus tard à `t`, une cible entre `t` et `t+1`, une séparation entraînement/test selon le temps, puis un prétraitement appris uniquement sur l'entraînement et à l'intérieur des rééchantillonnages. Les variables postérieures à l'événement et les identifiants ne deviennent jamais des prédicteurs.
+
+## 12. Pourquoi ne pas utiliser uniquement l'accuracy ?
+
+Pour une mobilité rare, prédire toujours « pas de mobilité » peut produire une accuracy élevée avec un rappel nul. Je privilégierais PR-AUC, rappel, précision, F1 et calibration, avec ROC-AUC, spécificité et matrice de confusion. Le seuil dépendrait du coût métier des faux positifs et faux négatifs.
+
+## 13. Comment valideriez-vous un modèle dans le temps ?
+
+J'utiliserais des fenêtres temporelles : apprentissage sur les années anciennes, réglage sur une période ultérieure, test final sur la période la plus récente jamais utilisée. Je rapporterais la dispersion des métriques par fenêtre, la calibration, la dérive des variables et une comparaison à une référence simple.
+
+## 14. Comment abordez-vous l'explicabilité ?
+
+Je distinguerais importance globale par permutation, dépendances partielles et contributions locales SHAP. Une importance prédictive mesure une contribution à la prédiction dans un modèle et un jeu de données donnés. Elle n'est ni un coefficient d'association, ni une preuve causale, et elle peut être instable avec des variables corrélées.
+
+## 15. Comment garantissez-vous la qualité statistique ?
+
+Je sépare contrôles logiciels, qualité des données, contrôles statistiques et règles métier. Chaque indicateur possède définition, numérateur, dénominateur, champ, période, source et limites. Les anomalies sont consignées avant transformation et les résultats diffusés sont rapprochés des tables sources et soumis à des tests de cohérence.
+
+## 16. Comment garantissez-vous la reproductibilité ?
+
+Les sources et millésimes sont configurés, les fichiers bruts sont préservés et empreintés, toutes les transformations sont codées, `targets` matérialise les dépendances, `renv` verrouille les packages, `testthat` vérifie les fonctions et sorties, Quarto régénère les documents et Git trace les versions.
+
+## 17. Pourquoi `targets` ?
+
+`targets` rend explicite le graphe de dépendances, ne recalcule que les cibles périmées, permet de superviser l'état du pipeline et évite les exécutions manuelles dans le désordre. Une cible correspond à un objet ou un fichier vérifiable, ce qui facilite l'audit, les tests et l'industrialisation.
+
+## 18. Pourquoi `renv` ?
+
+Un script reproductible dépend aussi des versions de packages. `renv.lock` décrit l'environnement attendu et `renv::restore()` le reconstruit. Cela limite les écarts entre poste de développement, intégration continue et production, sans remplacer le contrôle de la version de R ni les tests.
+
+## 19. Quel rôle jouent Git et GitHub ?
+
+Git assure une histoire atomique des changements, permet revue et retour ciblé, et relie une restitution à un commit. GitHub diffuse le code, la documentation et les rendus publics. Les données brutes, fichiers secrets, caches et artefacts non autorisés sont exclus par `.gitignore`.
+
+## 20. Quelles sont les limites de l'open data ?
+
+La limite principale est l'absence d'identifiant individuel stable. S'ajoutent la faible profondeur temporelle, l'agrégation en ETP, l'absence de motifs et de flux origine–destination, les décalages de millésime et le secret statistique. Les données ouvertes permettent une analyse agrégée sérieuse, mais pas une carrière individuelle.
+
+## 21. Que pourriez-vous faire avec les données internes de la DEPP ?
+
+Construire un panel pseudonymisé personnel × année, définir des événements vérifiés, produire des taux de mobilité et matrices origine–destination, étudier le temps avant mobilité, modéliser les facteurs associés et évaluer une prédiction à `t+1`. Le tout sous habilitation, environnement sécurisé, minimisation et règles de diffusion.
+
+## 22. Comment industrialiseriez-vous cette production au sein du bureau A5 ?
+
+Je séparerais acquisition, préparation, calcul et diffusion ; j'utiliserais un stockage sécurisé avec droits par rôle, un pipeline paramétré par millésime, des nomenclatures versionnées, des tests bloquants et non bloquants, des journaux, une intégration continue et une validation statistique avant publication. Les sorties seraient historisées, documentées et reliées au code et aux sources qui les ont produites. Je prévoirais aussi supervision, alertes, reprise sur incident et calendrier de maintenance.
+
+## 23. Comment traitez-vous les doublons et les valeurs manquantes ?
+
+Je commence par définir la clé attendue et je qualifie les doublons : erreur, pluralité légitime ou changement de granularité. Pour les valeurs manquantes, je mesure leur fréquence par variable, période et groupe, j'étudie leur mécanisme plausible et leur effet sur le champ d'analyse. Aucune imputation ou suppression n'est silencieuse.
+
+## 24. Quelle différence entre statistique publique et simple data science ?
+
+La statistique publique impose une exigence forte sur le champ, les définitions, les nomenclatures, la comparabilité temporelle, la confidentialité, la révision, la documentation et l'interprétation. La performance technique compte, mais elle doit servir une mesure auditable, stable et compréhensible.
+
+# Simulation d'entretien
+
+La simulation se déroule question par question. Après chaque réponse, l'évaluation porte sur quatre dimensions :
+
+1. **Exactitude** : aucune confusion d'unité, d'événement ou de méthode.
+2. **Structure** : réponse directe, justification, exemple du projet, limite.
+3. **Clarté** : vocabulaire accessible et définitions des termes techniques.
+4. **Posture** : maîtrise, transparence sur les limites et orientation solution.
+
+Une réponse orale efficace dure généralement 45 à 90 secondes. La structure recommandée est : **idée principale → choix méthodologique → preuve dans le projet → limite ou prolongement**.
+
